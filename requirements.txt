@@ -20,6 +20,7 @@ firebase_admin==7.1.0
 fsspec==2026.2.0
 google-api-core==2.30.0
 google-auth==2.48.0
+google-genai
 google-cloud-core==2.5.0
 google-cloud-firestore==2.23.0
 google-cloud-storage==3.9.0
@@ -91,5 +92,6 @@ typing_extensions==4.15.0
 urllib3==2.6.3
 uvicorn==0.41.0
 wrapt==2.1.1
+
 
 
