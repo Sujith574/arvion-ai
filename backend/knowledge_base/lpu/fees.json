@@ -1,0 +1,16 @@
+[
+  {
+    "category": "fees",
+    "question": "What is the BTech fee at LPU?",
+    "answer": "BTech tuition fee 2024-25: CSE/IT/ECE/EEE — Rs 1,60,000/year. Mechanical/Civil — Rs 1,40,000/year. Payable semester-wise. Additional charges: Hostel Rs 85,000-1,10,000/year, Mess Rs 60,000/year. Scholarship holders pay reduced fees. Visit lpu.in/fees for the latest structure.",
+    "keywords": ["BTech", "fee", "tuition", "cost", "semester"],
+    "source": "official_fee_page"
+  },
+  {
+    "category": "fees",
+    "question": "How can I pay LPU fees online?",
+    "answer": "Pay through: 1) UMS Portal at ums.lpu.in (recommended), 2) Net banking / Debit / Credit card, 3) NEFT/RTGS to LPU bank account (details in portal), 4) DD in favour of 'Lovely Professional University' payable at Jalandhar. Keep payment receipt. For issues: fees@lpu.in or 01824-404404.",
+    "keywords": ["fee payment", "online", "UMS", "net banking", "RTGS", "DD"],
+    "source": "student_services"
+  }
+]

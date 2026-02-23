@@ -1,0 +1,16 @@
+[
+  {
+    "category": "hostel",
+    "question": "How do I apply for a hostel at LPU?",
+    "answer": "Apply through UMS portal (ums.lpu.in) under Student Services > Hostel Allotment. Apply within 7 days of admission confirmation. Hostel fee: Rs 85,000-1,10,000/year depending on room type (shared/single, AC/Non-AC). First-come-first-served basis. Contact: hostel@lpu.in | Block 65.",
+    "keywords": ["hostel", "apply", "accommodation", "room", "UMS"],
+    "source": "hostel_office"
+  },
+  {
+    "category": "hostel",
+    "question": "Is hostel mandatory at LPU?",
+    "answer": "Hostel is not mandatory at LPU for most programs. However, first-year international students are required to stay in university hostels. Day scholars can live off-campus in the surrounding areas like Phagwara and Jalandhar. Contact the hostel office at hostel@lpu.in for your specific program requirements.",
+    "keywords": ["hostel", "mandatory", "day scholar", "compulsory", "off campus"],
+    "source": "hostel_office"
+  }
+]

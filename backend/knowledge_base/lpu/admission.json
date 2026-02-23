@@ -1,0 +1,23 @@
+[
+  {
+    "category": "admission",
+    "question": "How do I apply for BTech admission at LPU?",
+    "answer": "Apply at lpu.in/admissions. Steps: 1) Register online, 2) Fill the application form, 3) Upload documents (10th, 12th marksheets + ID proof), 4) Pay Rs 1000 application fee, 5) Appear for LPUNEST or submit JEE Main score. Offer letter arrives within 7 working days.",
+    "keywords": ["BTech", "admission", "apply", "LPUNEST", "JEE"],
+    "source": "official_admissions_page"
+  },
+  {
+    "category": "admission",
+    "question": "What is LPUNEST and when is it conducted?",
+    "answer": "LPUNEST (LPU National Entrance and Scholarship Test) is LPU's own entrance exam conducted multiple times yearly — December, February, April, and June. It can be taken online from home or at designated centers. Scores determine merit scholarships ranging from 10% to 100% tuition fee waiver.",
+    "keywords": ["LPUNEST", "entrance", "exam", "scholarship", "test date"],
+    "source": "official_admissions_page"
+  },
+  {
+    "category": "admission",
+    "question": "What documents are required for LPU admission?",
+    "answer": "Required documents: 1) Class 10 marksheet & certificate, 2) Class 12 marksheet & certificate, 3) Transfer Certificate (TC), 4) Migration Certificate, 5) Character Certificate, 6) 6 passport-size photographs, 7) Aadhaar card, 8) Category certificate if SC/ST/OBC, 9) Medical fitness certificate. Bring originals at physical reporting.",
+    "keywords": ["documents", "marksheet", "certificate", "TC", "migration"],
+    "source": "official_admissions_page"
+  }
+]

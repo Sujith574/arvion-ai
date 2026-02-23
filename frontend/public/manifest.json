@@ -1,0 +1,42 @@
+{
+  "name": "Izra AI — University Intelligence",
+  "short_name": "Izra AI",
+  "description": "AI-powered platform for university information — admissions, courses, fees, campus life and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "LPU Chat",
+      "url": "/university/lpu/chat",
+      "description": "Chat with LPU AI"
+    }
+  ]
+}

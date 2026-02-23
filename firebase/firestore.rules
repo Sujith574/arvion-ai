@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isSuperAdmin() {
+      return getUserRole() == 'super_admin';
+    }
+
+    function isUniversityAdmin(uniId) {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return user.role == 'university_admin' && user.university_id == uniId;
+    }
+
+    match /universities/{uniId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isSuperAdmin();
+    }
+
+    match /university_knowledge/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() &&
+        (isSuperAdmin() || isUniversityAdmin(resource.data.university_id));
+    }
+
+    match /users/{userId} {
+      allow read, update: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && isSuperAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /query_logs/{logId} {
+      allow create: if true;
+      allow read: if isAuthenticated() &&
+        (isSuperAdmin() || isUniversityAdmin(resource.data.university_id));
+    }
+  }
+}

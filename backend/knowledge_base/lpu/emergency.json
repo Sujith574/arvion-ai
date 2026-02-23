@@ -1,0 +1,23 @@
+[
+  {
+    "category": "emergency",
+    "question": "Medical emergency on campus",
+    "answer": "MEDICAL EMERGENCY — Call LPU Medical Centre: 01824-404-911 (24/7). Location: Block 38, Ground Floor. Ambulance: 01824-404-000. Nearest hospital: Guru Nanak Dev Hospital, GT Road, Phagwara — 3.5 km from campus. Auto-rickshaws available at main gate 24/7. Call first, then come.",
+    "keywords": ["medical", "emergency", "hospital", "ambulance", "doctor", "sick"],
+    "source": "emergency_directory"
+  },
+  {
+    "category": "emergency",
+    "question": "Lost ID card at LPU",
+    "answer": "Lost ID Steps: 1) File FIR at campus police post — Block 1, 24/7. 2) Visit Registrar Office — Block 32, 9AM-5PM with FIR copy. 3) Submit application for duplicate ID + Rs 500 fee. 4) New ID ready in 2 working days. Until then use Aadhaar as temporary ID on campus. Contact: registrar@lpu.in | 01824-404-105.",
+    "keywords": ["ID card", "lost", "duplicate", "FIR", "student card"],
+    "source": "student_services"
+  },
+  {
+    "category": "emergency",
+    "question": "Exam emergency or malpractice issue at LPU",
+    "answer": "Exam emergency: Contact Exam Controller immediately — Block 32, Exam Cell. Phone: 01824-404-200. For malpractice allegations: You have the right to appeal within 7 days. Submit written appeal to the Dean Academics. Keep all hall tickets and admit cards safe until results are declared.",
+    "keywords": ["exam", "emergency", "malpractice", "appeal", "exam controller"],
+    "source": "exam_office"
+  }
+]
