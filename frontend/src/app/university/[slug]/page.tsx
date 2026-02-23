@@ -259,8 +259,8 @@ export default function UniversityDashboard() {
                                 <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
                                     {[
                                         { label: "🏥 Medical Emergency", href: `/university/${slug}/emergency#medical` },
+                                        { label: "🛡️ Security Emergency", href: `/university/${slug}/emergency#security` },
                                         { label: "🏠 Hostel Issue", href: `/university/${slug}/emergency#hostel` },
-                                        { label: "💳 Fee Deadline", href: `/university/${slug}/emergency#fee` },
                                         { label: "🪪 Lost ID Card", href: `/university/${slug}/emergency#lost_id` },
                                     ].map((item) => (
                                         <Link key={item.label} href={item.href} style={{ textDecoration: "none" }}>

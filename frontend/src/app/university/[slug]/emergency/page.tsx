@@ -8,6 +8,10 @@ import { getEmergencyContacts, type EmergencyCategory } from "@/lib/api";
 
 const EMERGENCY_META: Record<string, { color: string; bg: string; borderColor: string; pulse: boolean }> = {
     medical: { color: "#dc2626", bg: "#fff1f2", borderColor: "#fecaca", pulse: true },
+    security: { color: "#ea580c", bg: "#fff7ed", borderColor: "#fed7aa", pulse: true },
+    fire: { color: "#ef4444", bg: "#fef2f2", borderColor: "#fecaca", pulse: true },
+    anti_ragging: { color: "#b91c1c", bg: "#fef2f2", borderColor: "#fecaca", pulse: true },
+    dsr: { color: "#4f46e5", bg: "#eef2ff", borderColor: "#c7d2fe", pulse: false },
     hostel: { color: "#d97706", bg: "#fffbeb", borderColor: "#fde68a", pulse: false },
     fee: { color: "#7c3aed", bg: "#f5f3ff", borderColor: "#ddd6fe", pulse: false },
     lost_id: { color: "#2563eb", bg: "#eff6ff", borderColor: "#bfdbfe", pulse: false },
@@ -40,11 +44,56 @@ export default function EmergencyPage() {
                         title: "Medical Emergency",
                         icon: "🏥",
                         contacts: [
-                            { name: "LPU Hospital", phone: "01824-517000", available: "24/7" },
-                            { name: "Ambulance", phone: "18001803838", available: "24/7" },
+                            { name: "Reception Uni Hospital", phone: "01824-444079 / 01824-501227", available: "24/7" },
+                            { name: "Resident Medical Officer", phone: "98784-26880", available: "On Call" },
+                            { name: "Medical Officer", phone: "98153-64977", available: "On Call" },
+                            { name: "Nursing Staff", phone: "75081-82840 / 97800-36450", available: "On Call" },
                         ],
-                        location: "Block 32, LPU Campus",
-                        steps: ["Call ambulance immediately", "Go to LPU Hospital Block 32", "Contact hostel warden"],
+                        location: "Uni Hospital",
+                        steps: ["Call Reception Uni Hospital ideally", "Contact Medical Officer if no answer", "Reach out to Nursing staff if others are unavailable"],
+                    },
+                    security: {
+                        title: "Security Emergency",
+                        icon: "🛡️",
+                        contacts: [
+                            { name: "Emergency No.", phone: "95018-10448 / 01824-444362", available: "24/7" },
+                            { name: "Chief Security Officer", phone: "97800-05945 / 01824-444095", available: "On Call" },
+                            { name: "Senior Security Officer (Sec-1)", phone: "98766-44331 / 01824-444365", available: "On Call" },
+                            { name: "Security Officer (Sec-2)", phone: "98789-77600 / 01824-444272", available: "On Call" },
+                            { name: "Senior Security Officer (Sec-3)", phone: "98784-26874 / 01824-444545", available: "On Call" },
+                            { name: "Senior Security Officer (Sec-4)", phone: "98557-22332 / 01824-444070", available: "On Call" },
+                        ],
+                        location: "Main Security Office",
+                        steps: ["Dial the 24/7 emergency number first", "Find the officer of your sector if needed"],
+                    },
+                    fire: {
+                        title: "Fire Department",
+                        icon: "🔥",
+                        contacts: [
+                            { name: "Fire Tender", phone: "75081-83870", available: "24/7" },
+                            { name: "Fire Officer", phone: "97800-36430", available: "On Call" },
+                            { name: "Fire Office", phone: "01824-444201", available: "On Call" },
+                        ],
+                        location: "Fire Office",
+                        steps: ["Call Fire Tender immediately", "Evacuate the building safely"],
+                    },
+                    anti_ragging: {
+                        title: "Anti Ragging Helpline",
+                        icon: "🚫",
+                        contacts: [
+                            { name: "Anti Ragging Helpline", phone: "98766-44331", available: "24/7" },
+                        ],
+                        location: "Anti-Ragging Cell",
+                        steps: ["Report immediately to the Anti Ragging Helpline", "Provide necessary details clearly"],
+                    },
+                    dsr: {
+                        title: "DSR (Divison of Student Relationship)",
+                        icon: "🤝",
+                        contacts: [
+                            { name: "DSR Helpline", phone: "75081-83870", available: "Business Hours" },
+                        ],
+                        location: "DSR Office",
+                        steps: ["Contact DSR for relationship/dispute resolutions", "Ensure you have student ID handy"],
                     },
                     hostel: {
                         title: "Hostel Issue",
