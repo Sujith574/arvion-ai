@@ -30,9 +30,10 @@ app.add_middleware(GZipMiddleware, minimum_size=500)  # Compress responses >500 
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "https://izra.ai", "http://localhost:3000", "http://localhost:3001"],
+    # Allow Vercel domains, local dev, and custom domains
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
