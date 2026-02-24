@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Output optimized build for Docker
+  output: "standalone",
+
   // Enable React strict mode for better development experience
   reactStrictMode: true,
 

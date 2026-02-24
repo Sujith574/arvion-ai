@@ -19,11 +19,7 @@ _CACHE_TTL_SECONDS = 120  # 2 minute cache for university list
 def init_firebase():
     settings = get_settings()
     if not firebase_admin._apps:
-        import firebase_admin
-from firebase_admin import credentials
 
-def init_firebase():
-    if not firebase_admin._apps:
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
             "projectId": settings.FIREBASE_PROJECT_ID

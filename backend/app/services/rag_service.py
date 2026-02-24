@@ -17,7 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from app.services.firebase import get_knowledge_base
 from app.config import get_settings
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 try:
     import numpy as np
@@ -31,7 +32,9 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 if settings.GEMINI_API_KEY:
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+else:
+    client = None
 
 # Thread pool for blocking Prolixis / file I/O calls
 _executor = ThreadPoolExecutor(max_workers=4)
@@ -122,10 +125,9 @@ class RAGService:
 
     # ── Gemini ─────────────────────────────────────────────────────────────
     def _gemini(self, query: str, context: str = "", is_greeting: bool = False) -> str:
-        if not settings.GEMINI_API_KEY:
+        if not client:
             return ""
         try:
-            llm = genai.GenerativeModel("gemini-1.5-flash")
             uni = self.university_id.upper()
 
             if is_greeting:
@@ -164,7 +166,10 @@ class RAGService:
                     f"User question: {query}\n\nAnswer:"
                 )
 
-            response = llm.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
             return response.text.strip() if response.text else ""
         except Exception as e:
             logger.error(f"[Gemini] Error: {e}")
@@ -279,8 +284,10 @@ class RAGService:
                 f"User question: {query}\n\nAnswer:"
             )
             try:
-                llm = genai.GenerativeModel("gemini-1.5-flash")
-                resp = llm.generate_content(prompt)
+                resp = client.models.generate_content(
+                    model="gemini-1.5-flash",
+                    contents=prompt
+                )
                 answer = resp.text.strip() if resp.text else (
                     f"I'm Arvion AI, the official AI assistant for {uni} university. "
                     f"I was trained on {uni}'s knowledge base to help students, parents, and applicants with accurate information about admissions, courses, fees, hostel, and campus life."
