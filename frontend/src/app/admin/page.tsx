@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                                 <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>AI Layer Status</h2>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                                     {[
-                                        { label: "Gemini AI Core", status: "Online", color: "#22c55e" },
+                                        { label: "Cloud AI Core", status: "Online", color: "#22c55e" },
                                         { label: "FAISS Knowledge Base", status: "Active", color: "#22c55e" },
                                         { label: "Firebase Firestore", status: "Connected", color: "#22c55e" },
                                         { label: "Rate Limiter", status: "20 req/min", color: "#3b82f6" },
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
                                                         background: log.used_fallback_llm ? "#eff6ff" : "#f0fdf4",
                                                         color: log.used_fallback_llm ? "#2563eb" : "#16a34a",
                                                     }}>
-                                                        {log.used_fallback_llm ? "Gemini AI" : "Knowledge Base"}
+                                                        {log.used_fallback_llm ? "Cloud AI" : "Knowledge Base"}
                                                     </span>
                                                 </td>
                                                 <td style={{ padding: "1rem 1.25rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>

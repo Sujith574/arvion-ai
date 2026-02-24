@@ -1,0 +1,11 @@
+{
+  "filename": "cloudbuild.yaml",
+  "github": {
+    "name": "arvion-ai",
+    "owner": "Sujith574",
+    "push": {
+      "branch": "^main$"
+    }
+  },
+  "name": "github-deploy"
+}

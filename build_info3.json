@@ -1,0 +1,133 @@
+﻿{
+  "artifacts": {
+    "images": [
+      "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+      "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+    ]
+  },
+  "buildTriggerId": "3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9",
+  "createTime": "2026-02-24T04:41:19.673886Z",
+  "id": "c5262bf6-1e87-40ed-8eae-008cadd1fd61",
+  "images": [
+    "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+    "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+  ],
+  "logUrl": "https://console.cloud.google.com/cloud-build/builds/c5262bf6-1e87-40ed-8eae-008cadd1fd61?project=348624065149",
+  "name": "projects/348624065149/locations/global/builds/c5262bf6-1e87-40ed-8eae-008cadd1fd61",
+  "options": {
+    "dynamicSubstitutions": true,
+    "logging": "CLOUD_LOGGING_ONLY",
+    "pool": {},
+    "substitutionOption": "ALLOW_LOOSE"
+  },
+  "projectId": "arvion-241094",
+  "queueTtl": "3600s",
+  "serviceAccount": "projects/arvion-241094/serviceAccounts/firebase-adminsdk-fbsvc@arvion-241094.iam.gserviceaccount.com",
+  "source": {
+    "gitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "sourceProvenance": {
+    "resolvedGitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "startTime": "2026-02-24T04:41:20.598201725Z",
+  "status": "WORKING",
+  "steps": [
+    {
+      "args": [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "./backend"
+      ],
+      "id": "Build Backend",
+      "name": "gcr.io/cloud-builders/docker"
+    },
+    {
+      "args": [
+        "push",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25"
+      ],
+      "id": "Push Backend",
+      "name": "gcr.io/cloud-builders/docker"
+    },
+    {
+      "args": [
+        "run",
+        "deploy",
+        "arvion-backend",
+        "--image",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "8080"
+      ],
+      "entrypoint": "gcloud",
+      "id": "Deploy Backend",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    },
+    {
+      "args": [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "./frontend"
+      ],
+      "id": "Build Frontend",
+      "name": "gcr.io/cloud-builders/docker"
+    },
+    {
+      "args": [
+        "push",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+      ],
+      "id": "Push Frontend",
+      "name": "gcr.io/cloud-builders/docker"
+    },
+    {
+      "args": [
+        "run",
+        "deploy",
+        "arvion-frontend",
+        "--image",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "3000",
+        "--update-env-vars",
+        "NEXT_PUBLIC_API_URL=https://arvion-backend-304443722237.us-central1.run.app"
+      ],
+      "entrypoint": "gcloud",
+      "id": "Deploy Frontend",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    }
+  ],
+  "substitutions": {
+    "BRANCH_NAME": "main",
+    "COMMIT_SHA": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "REF_NAME": "main",
+    "REPO_FULL_NAME": "Sujith574/arvion-ai",
+    "REPO_NAME": "arvion-ai",
+    "REVISION_ID": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "SHORT_SHA": "c070e13",
+    "TRIGGER_BUILD_CONFIG_PATH": "cloudbuild.yaml",
+    "TRIGGER_NAME": "github-deploy"
+  },
+  "tags": [
+    "trigger-3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9"
+  ],
+  "timeout": "3600s"
+}

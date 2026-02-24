@@ -1,0 +1,199 @@
+﻿{
+  "artifacts": {
+    "images": [
+      "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+      "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+    ]
+  },
+  "buildTriggerId": "3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9",
+  "createTime": "2026-02-24T04:22:45.354702Z",
+  "failureInfo": {
+    "detail": "Build step failure: build step 1 \"gcr.io/cloud-builders/docker\" failed: step exited with non-zero status: 1",
+    "type": "USER_BUILD_STEP"
+  },
+  "finishTime": "2026-02-24T04:28:12.502509Z",
+  "id": "33168ec5-caf3-4fab-bf4a-3f93eedf5f08",
+  "images": [
+    "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+    "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+  ],
+  "logUrl": "https://console.cloud.google.com/cloud-build/builds/33168ec5-caf3-4fab-bf4a-3f93eedf5f08?project=348624065149",
+  "name": "projects/348624065149/locations/global/builds/33168ec5-caf3-4fab-bf4a-3f93eedf5f08",
+  "options": {
+    "dynamicSubstitutions": true,
+    "logging": "CLOUD_LOGGING_ONLY",
+    "pool": {},
+    "substitutionOption": "ALLOW_LOOSE"
+  },
+  "projectId": "arvion-241094",
+  "queueTtl": "3600s",
+  "results": {
+    "buildStepImages": [
+      "sha256:f80b64d99b04558b0ee730da54471186b588bcaf8d4b82d0b1e0699952718eb9",
+      "sha256:f80b64d99b04558b0ee730da54471186b588bcaf8d4b82d0b1e0699952718eb9",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "buildStepOutputs": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "serviceAccount": "projects/arvion-241094/serviceAccounts/firebase-adminsdk-fbsvc@arvion-241094.iam.gserviceaccount.com",
+  "source": {
+    "gitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "sourceProvenance": {
+    "resolvedGitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "startTime": "2026-02-24T04:22:52.349314646Z",
+  "status": "FAILURE",
+  "steps": [
+    {
+      "args": [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "./backend"
+      ],
+      "id": "Build Backend",
+      "name": "gcr.io/cloud-builders/docker",
+      "pullTiming": {
+        "endTime": "2026-02-24T04:22:57.215941169Z",
+        "startTime": "2026-02-24T04:22:57.210551453Z"
+      },
+      "status": "SUCCESS",
+      "timing": {
+        "endTime": "2026-02-24T04:27:58.555608137Z",
+        "startTime": "2026-02-24T04:22:57.210551453Z"
+      }
+    },
+    {
+      "args": [
+        "push",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25"
+      ],
+      "exitCode": 1,
+      "id": "Push Backend",
+      "name": "gcr.io/cloud-builders/docker",
+      "pullTiming": {
+        "endTime": "2026-02-24T04:27:58.564994544Z",
+        "startTime": "2026-02-24T04:27:58.556379659Z"
+      },
+      "status": "FAILURE",
+      "timing": {
+        "endTime": "2026-02-24T04:28:01.035336458Z",
+        "startTime": "2026-02-24T04:27:58.556379659Z"
+      }
+    },
+    {
+      "args": [
+        "run",
+        "deploy",
+        "arvion-backend",
+        "--image",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/backend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "8080"
+      ],
+      "entrypoint": "gcloud",
+      "id": "Deploy Backend",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "status": "QUEUED"
+    },
+    {
+      "args": [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "./frontend"
+      ],
+      "id": "Build Frontend",
+      "name": "gcr.io/cloud-builders/docker",
+      "status": "QUEUED"
+    },
+    {
+      "args": [
+        "push",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25"
+      ],
+      "id": "Push Frontend",
+      "name": "gcr.io/cloud-builders/docker",
+      "status": "QUEUED"
+    },
+    {
+      "args": [
+        "run",
+        "deploy",
+        "arvion-frontend",
+        "--image",
+        "us-central1-docker.pkg.dev/arvion-241094/arvion-repo/frontend:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "3000",
+        "--update-env-vars",
+        "NEXT_PUBLIC_API_URL=https://arvion-backend-304443722237.us-central1.run.app"
+      ],
+      "entrypoint": "gcloud",
+      "id": "Deploy Frontend",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk",
+      "status": "QUEUED"
+    }
+  ],
+  "substitutions": {
+    "BRANCH_NAME": "main",
+    "COMMIT_SHA": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "REF_NAME": "main",
+    "REPO_FULL_NAME": "Sujith574/arvion-ai",
+    "REPO_NAME": "arvion-ai",
+    "REVISION_ID": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "SHORT_SHA": "c070e13",
+    "TRIGGER_BUILD_CONFIG_PATH": "cloudbuild.yaml",
+    "TRIGGER_NAME": "github-deploy"
+  },
+  "tags": [
+    "trigger-3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9"
+  ],
+  "timeout": "3600s",
+  "timing": {
+    "BUILD": {
+      "endTime": "2026-02-24T04:28:01.036048137Z",
+      "startTime": "2026-02-24T04:22:56.606630595Z"
+    },
+    "FETCHSOURCE": {
+      "endTime": "2026-02-24T04:22:56.605957712Z",
+      "startTime": "2026-02-24T04:22:55.416882182Z"
+    },
+    "GIT_SOURCE": {
+      "endTime": "2026-02-24T04:22:56.605957712Z",
+      "startTime": "2026-02-24T04:22:55.416882182Z"
+    }
+  },
+  "warnings": [
+    {
+      "priority": "INFO",
+      "text": "The service account running this build projects/arvion-241094/serviceAccounts/firebase-adminsdk-fbsvc@arvion-241094.iam.gserviceaccount.com does not have permission to write logs to Cloud Logging. To fix this, grant the Logs Writer (roles/logging.logWriter) role to the service account."
+    }
+  ]
+}

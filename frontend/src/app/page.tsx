@@ -109,7 +109,7 @@ const features = [
     color: "#f59e0b",
     bg: "#fffbeb",
     title: "High-Speed AI Core",
-    desc: "Powered by Gemini 1.5 Flash, the platform delivers incredibly fast and accurate reasoning based on your university's data.",
+    desc: "Powered by advanced proprietary AI, the platform delivers incredibly fast and accurate reasoning based on your university's data.",
   },
   {
     icon: icons.graduation,

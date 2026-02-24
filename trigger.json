@@ -1,0 +1,15 @@
+﻿{
+  "createTime": "2026-02-24T03:28:55.737452089Z",
+  "filename": "cloudbuild.yaml",
+  "github": {
+    "name": "arvion-ai",
+    "owner": "Sujith574",
+    "push": {
+      "branch": "^main$"
+    }
+  },
+  "id": "3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9",
+  "name": "github-deploy",
+  "resourceName": "projects/arvion-241094/locations/global/triggers/3cf1dbe4-0e3d-4582-be50-ea9b14a0f8d9",
+  "serviceAccount": "projects/arvion-241094/serviceAccounts/firebase-adminsdk-fbsvc@arvion-241094.iam.gserviceaccount.com"
+}

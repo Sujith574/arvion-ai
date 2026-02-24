@@ -1,3 +1,4 @@
+import requests
 import logging
 from google import genai
 from google.genai import types
@@ -29,19 +30,47 @@ async def call_fallback_llm(
     context: str,
 ) -> str:
     """
-    Call Google Gemini as the fallback when RAG confidence is low.
-    Uses gemini-2.0-flash for speed and cost efficiency.
+    Primary API: Prolixis API
+    Secondary API (Fallback): Google Gemini
     """
+    prompt = f"System: {SYSTEM_INSTRUCTION.format(university_id=university_id, context=context[:2000])}\nUser: {query}"
+
+    # 1. Primary Attempt: Prolixis API
+    if settings.PROLIXIS_API_KEY:
+        try:
+            headers = {
+                "Authorization": f"Bearer {settings.PROLIXIS_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "prolixis-core",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": 500
+            }
+            
+            # 5-second timeout to prevent extreme hangs before fallback
+            response = requests.post(f"{settings.PROLIXIS_BASE_URL}/v1/chat/completions", json=payload, headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data['choices'][0]['message']['content']
+            else:
+                logger.warning(f"[Prolixis] API returned {response.status_code}, falling back to Gemini.")
+        except Exception as e:
+            logger.warning(f"[Prolixis] API call failed: {e}, falling back to Gemini.")
+
+    # 2. Fallback Attempt: Gemini API
     try:
         response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
+            model="gemini-2.0-flash",
             contents=query,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION.format(
                     university_id=university_id,
                     context=context[:2000],  # Cap context length
                 ),
-                temperature=0.2,      # Low = factual, consistent
+                temperature=0.2,
                 max_output_tokens=500,
                 candidate_count=1,
             ),
@@ -50,7 +79,7 @@ async def call_fallback_llm(
         return response.text
 
     except Exception as e:
-        logger.error(f"[Gemini] Fallback failed: {e}")
+        logger.error(f"[Gemini] Fallback failed completely: {e}")
         return (
             "I'm having trouble answering that right now. "
             "Please contact the admissions office directly for accurate information."

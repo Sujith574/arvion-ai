@@ -34,6 +34,8 @@ steps:
       - '--allow-unauthenticated'
       - '--port'
       - '8080'
+      - '--set-env-vars'
+      - 'FIREBASE_PROJECT_ID=arvion-241094,JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,GEMINI_API_KEY=AIzaSyAsBu79AsRn4nDZ8uJaelDfO_ARM6owsgk,SMTP_FROM_EMAIL=sujithlavudu@gmail.com,SMTP_APP_PASSWORD=lcwe ulws ysnm zinn,FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app'
     id: 'Deploy Backend'
 
 # ==============================================================================

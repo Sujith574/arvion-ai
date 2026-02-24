@@ -1,0 +1,145 @@
+﻿{
+  "artifacts": {
+    "images": [
+      "asia-south1-docker.pkg.dev/arvion-241094/cloud-run-source-deploy/arvion-ai/arvion-ai:c070e13b07dc280a176f26f84e05796239ec4b25"
+    ]
+  },
+  "buildTriggerId": "eb1e863a-c4fb-45dd-8de7-2ee46a257c0b",
+  "createTime": "2026-02-24T03:21:14.876220Z",
+  "failureInfo": {
+    "detail": "Build step failure: build step 0 \"gcr.io/cloud-builders/docker\" failed: step exited with non-zero status: 1",
+    "type": "USER_BUILD_STEP"
+  },
+  "finishTime": "2026-02-24T03:21:31.023208Z",
+  "id": "a8f7f069-b132-4987-a761-d6bcea5d854b",
+  "images": [
+    "asia-south1-docker.pkg.dev/arvion-241094/cloud-run-source-deploy/arvion-ai/arvion-ai:c070e13b07dc280a176f26f84e05796239ec4b25"
+  ],
+  "logUrl": "https://console.cloud.google.com/cloud-build/builds/a8f7f069-b132-4987-a761-d6bcea5d854b?project=348624065149",
+  "name": "projects/348624065149/locations/global/builds/a8f7f069-b132-4987-a761-d6bcea5d854b",
+  "options": {
+    "dynamicSubstitutions": true,
+    "logging": "CLOUD_LOGGING_ONLY",
+    "pool": {},
+    "substitutionOption": "ALLOW_LOOSE"
+  },
+  "projectId": "arvion-241094",
+  "queueTtl": "3600s",
+  "results": {
+    "buildStepImages": [
+      "sha256:f80b64d99b04558b0ee730da54471186b588bcaf8d4b82d0b1e0699952718eb9",
+      "",
+      ""
+    ],
+    "buildStepOutputs": [
+      "",
+      "",
+      ""
+    ]
+  },
+  "serviceAccount": "projects/arvion-241094/serviceAccounts/348624065149-compute@developer.gserviceaccount.com",
+  "source": {
+    "gitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "sourceProvenance": {
+    "resolvedGitSource": {
+      "revision": "c070e13b07dc280a176f26f84e05796239ec4b25",
+      "url": "https://github.com/Sujith574/arvion-ai.git"
+    }
+  },
+  "startTime": "2026-02-24T03:21:15.478263269Z",
+  "status": "FAILURE",
+  "steps": [
+    {
+      "args": [
+        "build",
+        "--no-cache",
+        "-t",
+        "asia-south1-docker.pkg.dev/arvion-241094/cloud-run-source-deploy/arvion-ai/arvion-ai:c070e13b07dc280a176f26f84e05796239ec4b25",
+        ".",
+        "-f",
+        "Dockerfile"
+      ],
+      "exitCode": 1,
+      "id": "Build",
+      "name": "gcr.io/cloud-builders/docker",
+      "pullTiming": {
+        "endTime": "2026-02-24T03:21:19.210828864Z",
+        "startTime": "2026-02-24T03:21:19.203413800Z"
+      },
+      "status": "FAILURE",
+      "timing": {
+        "endTime": "2026-02-24T03:21:20.254476451Z",
+        "startTime": "2026-02-24T03:21:19.203413800Z"
+      }
+    },
+    {
+      "args": [
+        "push",
+        "asia-south1-docker.pkg.dev/arvion-241094/cloud-run-source-deploy/arvion-ai/arvion-ai:c070e13b07dc280a176f26f84e05796239ec4b25"
+      ],
+      "id": "Push",
+      "name": "gcr.io/cloud-builders/docker",
+      "status": "QUEUED"
+    },
+    {
+      "args": [
+        "run",
+        "services",
+        "update",
+        "arvion-ai",
+        "--platform=managed",
+        "--image=asia-south1-docker.pkg.dev/arvion-241094/cloud-run-source-deploy/arvion-ai/arvion-ai:c070e13b07dc280a176f26f84e05796239ec4b25",
+        "--labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=c070e13b07dc280a176f26f84e05796239ec4b25,gcb-build-id=a8f7f069-b132-4987-a761-d6bcea5d854b,gcb-trigger-id=eb1e863a-c4fb-45dd-8de7-2ee46a257c0b",
+        "--region=asia-south1",
+        "--quiet"
+      ],
+      "entrypoint": "gcloud",
+      "id": "Deploy",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+      "status": "QUEUED"
+    }
+  ],
+  "substitutions": {
+    "BRANCH_NAME": "main",
+    "COMMIT_SHA": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "REF_NAME": "main",
+    "REPO_FULL_NAME": "Sujith574/arvion-ai",
+    "REPO_NAME": "arvion-ai",
+    "REVISION_ID": "c070e13b07dc280a176f26f84e05796239ec4b25",
+    "SHORT_SHA": "c070e13",
+    "TRIGGER_BUILD_CONFIG_PATH": "",
+    "TRIGGER_NAME": "rmgpgab-arvion-ai-asia-south1-Sujith574-arvion-ai--mailq",
+    "_AR_HOSTNAME": "asia-south1-docker.pkg.dev",
+    "_AR_PROJECT_ID": "arvion-241094",
+    "_AR_REPOSITORY": "cloud-run-source-deploy",
+    "_DEPLOY_REGION": "asia-south1",
+    "_PLATFORM": "managed",
+    "_SERVICE_NAME": "arvion-ai",
+    "_TRIGGER_ID": "eb1e863a-c4fb-45dd-8de7-2ee46a257c0b"
+  },
+  "tags": [
+    "gcp-cloud-build-deploy-cloud-run",
+    "gcp-cloud-build-deploy-cloud-run-managed",
+    "arvion-ai",
+    "trigger-eb1e863a-c4fb-45dd-8de7-2ee46a257c0b"
+  ],
+  "timeout": "3600s",
+  "timing": {
+    "BUILD": {
+      "endTime": "2026-02-24T03:21:20.254551748Z",
+      "startTime": "2026-02-24T03:21:18.665459147Z"
+    },
+    "FETCHSOURCE": {
+      "endTime": "2026-02-24T03:21:18.664202426Z",
+      "startTime": "2026-02-24T03:21:17.342393754Z"
+    },
+    "GIT_SOURCE": {
+      "endTime": "2026-02-24T03:21:18.664202426Z",
+      "startTime": "2026-02-24T03:21:17.342393754Z"
+    }
+  }
+}
