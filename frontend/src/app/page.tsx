@@ -60,6 +60,25 @@ const icons = {
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
+  linkedin: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  ),
+  instagram: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  ),
+  facebook: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  ),
 };
 
 // ── Data ──────────────────────────────────────────────────────
@@ -613,6 +632,17 @@ export default function HomePage() {
           color: "var(--text-muted)",
           fontSize: "0.875rem",
         }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginBottom: "1rem" }}>
+            <a href="https://www.linkedin.com/in/sujith-lavudu-24l094/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)", transition: "color 0.2s" }} onMouseOver={(e: any) => e.target.style.color = "#0a66c2"} onMouseOut={(e: any) => e.target.style.color = "var(--text-muted)"}>
+              {icons.linkedin}
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61552815710275" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)", transition: "color 0.2s" }} onMouseOver={(e: any) => e.target.style.color = "#1877f2"} onMouseOut={(e: any) => e.target.style.color = "var(--text-muted)"}>
+              {icons.facebook}
+            </a>
+            <a href="https://www.instagram.com/sujith_lavudu/?hl=en" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)", transition: "color 0.2s" }} onMouseOver={(e: any) => e.target.style.color = "#E1306C"} onMouseOut={(e: any) => e.target.style.color = "var(--text-muted)"}>
+              {icons.instagram}
+            </a>
+          </div>
           <p>© 2026 Izra AI. Built for students, by builders.</p>
         </footer>
       </main>
