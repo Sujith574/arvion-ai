@@ -90,11 +90,12 @@ export default function EmergencyPage() {
                         title: "DSR (Divison of Student Relationship)",
                         icon: "🤝",
                         contacts: [
-                            { name: "DSR Helpline", phone: "75081-83870", available: "Business Hours" },
+                            { name: "DSR Helpline", phone: "+91 1824-520150", available: "Business Hours" },
                         ],
                         location: "DSR Office",
                         steps: ["Contact DSR for relationship/dispute resolutions", "Ensure you have student ID handy"],
                     },
+
                     hostel: {
                         title: "Hostel Issue",
                         icon: "🏠",
@@ -181,7 +182,8 @@ export default function EmergencyPage() {
 
                 {/* ── Emergency Cards ─────────────────────────── */}
                 <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1.5rem" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "1.25rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))", gap: "1.25rem" }}>
+
                         {categories.map(([key, data]) => {
                             const meta = EMERGENCY_META[key] || { color: "#64748b", bg: "#f9fafb", borderColor: "#e2e8f0", pulse: false };
                             const isOpen = activeCard === key;

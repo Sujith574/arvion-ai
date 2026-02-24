@@ -1,0 +1,11 @@
+.git
+**/node_modules/
+**/venv/
+**/__pycache__/
+frontend/.next/
+backend/frontend/
+*.log
+.env.local
+frontend/.env.local
+.DS_Store
+

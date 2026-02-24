@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 20
 
     # Frontend origin (for CORS)
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "https://arvion-ai.vercel.app"
 
     class Config:
         env_file = ".env"

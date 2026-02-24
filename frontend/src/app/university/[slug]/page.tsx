@@ -37,12 +37,13 @@ const LPU_INFO = {
         { name: "Law & Legal Studies", programs: "BA LLB, BBA LLB, LLM" },
     ],
     contacts: [
-        { label: "Admissions Helpline", phone: "01824-404404", available: "9AM–5PM (Mon–Sat)" },
-        { label: "Student Helpdesk", phone: "01824-517000", available: "8AM–8PM (All days)" },
-        { label: "Hostel Office", phone: "01824-404500", available: "9AM–6PM (Mon–Sat)" },
-        { label: "Fee Counter", phone: "01824-404777", available: "9AM–5PM (Mon–Sat)" },
+        { label: "General & Admissions", phone: "01824-517000", available: "24/7 Enquiry" },
+        { label: "WhatsApp Support", phone: "+91 98525 69000", available: "Message Anytime" },
+        { label: "Medical Emergency", phone: "01824-444079", available: "24/7 Hospital" },
+        { label: "Security Emergency", phone: "95018-10448", available: "24/7 Security" },
     ],
 };
+
 
 export default function UniversityDashboard() {
     const params = useParams();
@@ -149,7 +150,7 @@ export default function UniversityDashboard() {
                 {/* ── Quick Actions ───────────────────────────────── */}
                 <div style={{ background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", padding: "1.5rem" }}>
                     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.875rem" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.625rem" }}>
                             {QUICK_ACTIONS.map((action) => (
                                 <Link
                                     key={action.id}
@@ -221,7 +222,7 @@ export default function UniversityDashboard() {
 
                     {/* Overview Tab */}
                     {activeTab === "overview" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                        <div className="tab-grid-responsive" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.25rem" }}>
                             <div className="card" style={{ padding: "1.75rem", gridColumn: "1 / -1" }}>
                                 <h2 style={{ fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.875rem" }}>About {university.name}</h2>
                                 <p style={{ color: "var(--text-secondary)", lineHeight: 1.75 }}>{university.description}</p>
@@ -281,7 +282,7 @@ export default function UniversityDashboard() {
 
                     {/* Departments Tab */}
                     {activeTab === "departments" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
                             {LPU_INFO.departments.map((dept, i) => (
                                 <div key={i} className="card" style={{ padding: "1.5rem" }}>
                                     <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "0.875rem", marginBottom: "0.875rem" }}>
@@ -296,7 +297,7 @@ export default function UniversityDashboard() {
 
                     {/* Contacts Tab */}
                     {activeTab === "contacts" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
                             {LPU_INFO.contacts.map((contact, i) => (
                                 <div key={i} className="card" style={{ padding: "1.5rem" }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-600)", marginBottom: "0.625rem" }}>

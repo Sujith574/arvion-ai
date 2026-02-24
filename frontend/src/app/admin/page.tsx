@@ -118,7 +118,7 @@ export default function AdminDashboard() {
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
                             <div>
                                 <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 800, color: "white", margin: 0 }}>Admin Dashboard</h1>
-                                <p style={{ color: "rgb(255 255 255 / 0.7)", marginTop: "0.375rem" }}>Lovely Professional University · Izra AI Analytics</p>
+                                <p style={{ color: "rgb(255 255 255 / 0.7)", marginTop: "0.375rem" }}>Lovely Professional University · Arvion AI Analytics</p>
                             </div>
                             <div style={{ display: "flex", gap: "0.5rem" }}>
                                 <div style={{ padding: "0.375rem 0.875rem", borderRadius: "999px", background: "rgb(255 255 255 / 0.15)", color: "white", fontSize: "0.8125rem", fontWeight: 600 }}>

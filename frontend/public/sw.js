@@ -1,5 +1,5 @@
-// Izra AI Service Worker — v1
-const CACHE_NAME = "izra-ai-v1";
+// Arvion AI Service Worker — v1
+const CACHE_NAME = "arvion-ai-v1";
 const STATIC_ASSETS = [
     "/",
     "/manifest.json",

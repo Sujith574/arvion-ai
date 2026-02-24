@@ -69,7 +69,7 @@ export default function LoginPage() {
                             🧠
                         </div>
                         <span style={{ fontSize: "1.375rem", fontWeight: 800, background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                            Izra AI
+                            Arvion AI
                         </span>
                     </Link>
                 </div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 <div className="card" style={{ padding: "2rem" }}>
                     <h1 style={{ fontSize: "1.5rem", fontWeight: 800, textAlign: "center", marginBottom: "0.375rem" }}>Welcome back</h1>
                     <p style={{ color: "var(--text-muted)", textAlign: "center", fontSize: "0.9375rem", marginBottom: "1.75rem" }}>
-                        Sign in to your Izra AI account
+                        Sign in to your Arvion AI account
                     </p>
 
                     {error && (

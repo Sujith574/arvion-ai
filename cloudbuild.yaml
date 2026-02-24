@@ -7,7 +7,7 @@ steps:
     args: 
       - 'build'
       - '-t'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:latest'
       - './backend'
     id: 'Build Backend'
 
@@ -15,7 +15,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:latest'
     id: 'Push Backend'
 
   # Deploy Backend to Cloud Run
@@ -26,7 +26,7 @@ steps:
       - 'deploy'
       - 'arvion-backend'
       - '--image'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -35,7 +35,7 @@ steps:
       - '--port'
       - '8080'
       - '--set-env-vars'
-      - 'FIREBASE_PROJECT_ID=arvion-241094,JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,GEMINI_API_KEY=AIzaSyAsBu79AsRn4nDZ8uJaelDfO_ARM6owsgk,SMTP_FROM_EMAIL=sujithlavudu@gmail.com,SMTP_APP_PASSWORD=lcwe ulws ysnm zinn,FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app'
+      - 'FIREBASE_PROJECT_ID=arvion-241094,JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,GEMINI_API_KEY=AIzaSyAsBu79AsRn4nDZ8uJaelDfO_ARM6owsgk,SMTP_FROM_EMAIL=sujithlavudu@gmail.com,SMTP_APP_PASSWORD=lcwe ulws ysnm zinn,FRONTEND_URL=https://arvion-ai.vercel.app,PROLIXIS_API_KEY=,PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
     id: 'Deploy Backend'
 
 # ==============================================================================
@@ -45,8 +45,10 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'build'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-348624065149.us-central1.run.app'
       - '-t'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:latest'
       - './frontend'
     id: 'Build Frontend'
 
@@ -54,7 +56,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: 
       - 'push'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:latest'
     id: 'Push Frontend'
 
   # Deploy Frontend to Cloud Run
@@ -65,7 +67,7 @@ steps:
       - 'deploy'
       - 'arvion-frontend'
       - '--image'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -79,8 +81,9 @@ steps:
     id: 'Deploy Frontend'
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:latest'
+
 
 options:
   logging: CLOUD_LOGGING_ONLY

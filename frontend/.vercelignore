@@ -1,0 +1,7 @@
+.next
+node_modules
+.env*.local
+build.log
+Dockerfile
+package-lock.json
+public/sw.js.map

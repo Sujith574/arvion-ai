@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://arvion-backend-348624065149.us-central1.run.app";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -61,7 +61,7 @@ export default function RequestUniversityPage() {
                             Request a University
                         </h1>
                         <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "1rem", lineHeight: 1.7, margin: 0 }}>
-                            Don&apos;t see your university on Izra AI? Submit a request and we&apos;ll work on onboarding it.
+                            Don&apos;t see your university on Arvion AI? Submit a request and we&apos;ll work on onboarding it.
                             Our team reviews every submission within 2–3 business days.
                         </p>
                     </div>
@@ -191,7 +191,7 @@ export default function RequestUniversityPage() {
                         {[
                             { icon: "⚡", title: "Fast Review", desc: "We review requests within 2–3 business days" },
                             { icon: "🔔", title: "Get Notified", desc: "Receive an email update when your university goes live" },
-                            { icon: "🆓", title: "Always Free", desc: "Izra AI is free for students and parents" },
+                            { icon: "🆓", title: "Always Free", desc: "Arvion AI is free for students and parents" },
                         ].map((item) => (
                             <div key={item.title} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "14px", padding: "1.25rem", textAlign: "center" }}>
                                 <div style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>{item.icon}</div>

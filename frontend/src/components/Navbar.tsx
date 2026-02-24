@@ -60,7 +60,8 @@ export default function Navbar() {
 
     // Sync theme on mount
     useEffect(() => {
-        const saved = localStorage.getItem("izra-theme") as "light" | "dark" | null;
+        const saved = localStorage.getItem("arvion-theme") as "light" | "dark" | null;
+
         if (saved) document.documentElement.setAttribute("data-theme", saved);
     }, [theme]);
 
@@ -140,7 +141,7 @@ export default function Navbar() {
                             backgroundClip: "text",
                         }}
                     >
-                        Izra AI
+                        Arvion AI
                     </span>
                 </Link>
 

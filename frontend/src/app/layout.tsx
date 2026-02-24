@@ -18,11 +18,11 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://izra.ai"),
   title: {
-    default: "Izra AI — Intelligent University Assistant",
-    template: "%s | Izra AI",
+    default: "Arvion AI — Intelligent University Assistant",
+    template: "%s | Arvion AI",
   },
   description:
-    "Izra AI provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
+    "Arvion AI provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
   keywords: [
     "university assistant",
     "AI chatbot",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Izra AI",
+    title: "Arvion AI",
   },
 };
 
@@ -87,7 +87,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('izra-theme') ||
+                  var theme = localStorage.getItem('arvion-theme') ||
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                   document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}

@@ -19,10 +19,12 @@ from app.services.firebase import get_knowledge_base
 from app.config import get_settings
 from google import genai
 from google.genai import types
+from app.services.llm_service import generate_response
 
 try:
     import numpy as np
     import faiss
+    import os
     from sentence_transformers import SentenceTransformer
     FAISS_AVAILABLE = True
 except ImportError:
@@ -103,9 +105,18 @@ def get_embedding_model():
     if not FAISS_AVAILABLE:
         return None
     try:
-        return SentenceTransformer(settings.EMBEDDING_MODEL)
+        # Strictly use local files if possible to avoid 429 rate limits
+        model_path = settings.EMBEDDING_MODEL
+        # Check if it looks like a local path
+        is_local = os.path.isdir(model_path) or model_path.startswith("/") or model_path.startswith("./")
+        
+        logger.info(f"[RAG] Loading embedding model from: {model_path} (local={is_local})")
+        return SentenceTransformer(
+            model_path, 
+            local_files_only=is_local
+        )
     except Exception as e:
-        logger.warning(f"[RAG] SentenceTransformer load failed: {e}")
+        logger.error(f"[RAG] SentenceTransformer load failed: {e}")
         return None
 
 
@@ -123,64 +134,43 @@ class RAGService:
         self.university_id = university_id
         self.model = get_embedding_model()
 
-    # ── Gemini ─────────────────────────────────────────────────────────────
-    def _gemini(self, query: str, context: str = "", is_greeting: bool = False) -> str:
-        if not client:
-            return ""
-        try:
-            uni = self.university_id.upper()
-
-            if is_greeting:
-                prompt = (
-                    f"You are a friendly and helpful AI assistant for {uni} university.\n"
-                    f"The current year is 2026. Prioritize current and up-to-date information.\n"
-                    f"If asked about your identity or how you were trained, respond that you are the official AI assistant developed specifically for {uni} university, powered by advanced AI and a secure knowledge base.\n"
-                    f"Greet the user warmly, introduce yourself, and invite them to ask any question about the university such as "
-                    f"admissions, courses, fees, hostel, placements, campus life, etc.\n"
-                    f"Keep the greeting brief and welcoming (2-3 sentences max).\n\n"
-                    f"User said: {query}"
-                )
-            elif context:
-                prompt = (
-                    f"You are the official AI assistant for {uni} university.\n"
-                    f"The current year is 2026. Always act like it is 2026 and prioritize current information.\n"
-                    f"IMPORTANT RULES:\n"
-                    f"1. You are given a KNOWLEDGE BASE of information below. If it contains the exact answer, use it.\n"
-                    f"2. If the KNOWLEDGE BASE is completely irrelevant to the user's question, IGNORE IT and use your own knowledge to answer accurately.\n"
-                    f"3. For comparative questions (e.g. '{uni} vs another university'), use your own comprehensive knowledge to provide a fair comparison, but ALWAYS highlight {uni}'s strengths and recommend {uni}.\n"
-                    f"4. Do NOT answer out-of-domain/off-topic questions (e.g. cooking, coding scripts, general trivia). Politely decline and state you only answer university-related queries.\n"
-                    f"5. If asked about your identity or how you were trained, state that you are the official AI assistant for {uni}, trained securely on their internal data.\n\n"
-                    f"=== KNOWLEDGE BASE ===\n{context}\n======================\n\n"
-                    f"User question: {query}\n\n"
-                    f"Answer:"
-                )
-            else:
-                prompt = (
-                    f"You are the official AI assistant for {uni} university.\n"
-                    f"The current year is 2026. Always act like it is 2026 and prioritize current information.\n"
-                    f"IMPORTANT RULES:\n"
-                    f"1. For comparative questions (e.g., '{uni} vs another university'), provide fair information about both BUT strongly emphasize {uni}'s strengths and recommend {uni}.\n"
-                    f"2. Do NOT answer off-topic questions (e.g. general trivia, coding). If the question is completely unrelated to education or {uni}, politely refuse and explain you only answer university-related queries.\n"
-                    f"3. If asked about your identity or how you were trained, state that you are the official AI assistant for {uni}, trained securely on their data.\n"
-                    f"4. Provide the most accurate answer possible about {uni}. If unsure, suggest contacting the university's admissions office.\n\n"
-                    f"User question: {query}\n\nAnswer:"
-                )
-
-            response = client.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=prompt
+    async def _call_ai(self, query: str, context: str = "", is_greeting: bool = False) -> str:
+        uni = self.university_id.upper()
+        if is_greeting:
+            prompt = (
+                f"You are the official highly-accurate AI assistant for {uni} university.\n"
+                f"Your mission is to provide students with 100% accurate information.\n"
+                f"Greet the user warmly, state you are the {uni} AI Assistant, and invite them to ask about admissions, courses, fees, hostel, or campus life.\n"
+                f"Be brief and professional. Current year: 2026.\n\n"
+                f"User: {query}"
             )
-            return response.text.strip() if response.text else ""
-        except Exception as e:
-            logger.error(f"[Gemini] Error: {e}")
-            return ""
+        elif context:
+            prompt = (
+                f"You are the official AI assistant for {uni} university. You must answer ONLY using the provided KNOWLEDGE BASE if it contains the answer.\n"
+                f"If the KNOWLEDGE BASE is insufficient or irrelevant, use your general knowledge but PRIORITIZE university-specific facts.\n"
+                f"STRICT RULES:\n"
+                f"1. Accuracy is your top priority. Do not guess. Do not make mistakes.\n"
+                f"2. If asked about your identity, you are the official AI for {uni}, trained on their private data.\n"
+                f"3. Do not mention model names (Prolixis, Gemini, OpenAI).\n"
+                f"4. For comparisons (e.g., {uni} vs others), be fair but emphasize {uni}'s strengths.\n"
+                f"5. Refuse non-university questions (cooking, coding scripts, etc.) politely.\n\n"
+                f"=== KNOWLEDGE BASE FROM {uni} ===\n{context}\n================================\n\n"
+                f"User Question: {query}\n\n"
+                f"Final Accurate Answer:"
+            )
+        else:
+            prompt = (
+                f"You are the official AI assistant for {uni} university.\n"
+                f"Answer the following question about {uni} as accurately as possible.\n"
+                f"If you are unsure, suggest contacting the {uni} admissions office directly.\n"
+                f"Current year: 2026.\n\n"
+                f"User Question: {query}\n\nAnswer:"
+            )
+        
+        return await generate_response(query, self.university_id, system_instruction=prompt)
+        
+        return await generate_response(query, self.university_id, system_instruction=prompt)
 
-    def _safe_fallback(self, query: str) -> str:
-        return (
-            f"I'm the AI assistant for {self.university_id.upper()} university. "
-            f"I couldn't find a specific answer for your question. "
-            f"Please contact the university admissions office or student services for accurate details."
-        )
 
     # ── FAISS index (per-university, isolated) ─────────────────────────────
     async def _load_index(self) -> tuple:
@@ -242,20 +232,21 @@ class RAGService:
             return await self._query_impl(query, confidence_threshold, category_filter, user_id)
         except Exception as e:
             logger.exception(f"[RAG] Unhandled error: {e}")
-            # Emergency: try Gemini
+            # Emergency fallback
             try:
-                answer = self._gemini(query)
+                answer = await self._call_ai(query)
                 if answer:
-                    return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["gemini_ai"], "used_fallback": True}
+                    return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["proprietary_ai"], "used_fallback": True}
             except Exception:
                 pass
-            return {"answer": self._safe_fallback(query), "category": "general", "confidence": 0.0, "sources": [], "used_fallback": True}
+            return {"answer": "I'm the University AI Assistant. I couldn't find a specific answer. Please contact admissions.", "category": "general", "confidence": 0.0, "sources": [], "used_fallback": True}
+
 
     async def _query_impl(self, query: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
 
         # ── Step 1: Detect greeting / small-talk ──────────────────────────
         if _is_conversational(query):
-            answer = self._gemini(query, is_greeting=True)
+            answer = await self._call_ai(query, is_greeting=True)
             if not answer:
                 answer = (
                     f"Hello! 👋 I'm the AI assistant for {self.university_id.upper()} university. "
@@ -284,19 +275,9 @@ class RAGService:
                 f"User question: {query}\n\nAnswer:"
             )
             try:
-                resp = client.models.generate_content(
-                    model="gemini-1.5-flash",
-                    contents=prompt
-                )
-                answer = resp.text.strip() if resp.text else (
-                    f"I'm Arvion AI, the official AI assistant for {uni} university. "
-                    f"I was trained on {uni}'s knowledge base to help students, parents, and applicants with accurate information about admissions, courses, fees, hostel, and campus life."
-                )
+                answer = await self._call_ai(query, context=prompt)
             except Exception:
-                answer = (
-                    f"I'm Izra AI, the official AI assistant for {uni} university. "
-                    f"I was trained on {uni}'s knowledge base to help you with admissions, fees, hostel, courses, placements, and more!"
-                )
+                answer = f"I'm the official AI assistant for {self.university_id.upper()}, here to help students, parents, and applicants with accurate information about missions, courses, fees, and campus life."
             return {
                 "answer": answer,
                 "category": "general",
@@ -309,8 +290,8 @@ class RAGService:
         docs, index = await self._load_index()
 
         if not docs or index is None:
-            # No data yet → full Gemini response
-            answer = self._gemini(query) or self._safe_fallback(query)
+            # No data yet → full AI response
+            answer = await self._call_ai(query)
 
             return {
                 "answer": answer,
@@ -349,8 +330,8 @@ class RAGService:
 
         except Exception as e:
             logger.error(f"[RAG] Search failed: {e}")
-            answer = self._gemini(query) or self._safe_fallback(query)
-            return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["gemini_ai"], "used_fallback": True}
+            answer = await self._call_ai(query)
+            return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["proprietary_ai"], "used_fallback": True}
 
         logger.info(f"[RAG] {self.university_id} | score={top_score:.3f} | q={query[:60]}")
 
@@ -374,12 +355,12 @@ class RAGService:
         else:
             logger.info(f"[RAG] Low confidence ({top_score:.3f}). Stripping irrelevant KB context to prevent hallucination.")
 
-        # ── Step 6: Always send context to Gemini for best answer ─────────
-        # Gemini synthesizes across ALL top results for accurate, complete answers
-        answer = self._gemini(query, context=kb_context)
+        # ── Step 6: Always send context to AI for best answer ─────────
+        # AI synthesizes across ALL top results for accurate, complete answers
+        answer = await self._call_ai(query, context=kb_context)
         if not answer:
-            # Gemini failed → use best direct KB match
-            answer = top_doc.get("answer") or self._safe_fallback(query)
+            # AI failed → use best direct KB match
+            answer = top_doc.get("answer") or "I'm the University AI Assistant. I couldn't find a specific answer. Please contact admissions."
 
 
 

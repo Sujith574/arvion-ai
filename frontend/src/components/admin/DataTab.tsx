@@ -42,6 +42,7 @@ export default function DataTab({ token }: { token: string }) {
     const [uploading, setUploading] = useState<{ [slug: string]: boolean }>({});
     const [editMode, setEditMode] = useState<{ [slug: string]: boolean }>({});
     const [editData, setEditData] = useState<{ [slug: string]: any }>({});
+    const [showSuccessModal, setShowSuccessModal] = useState<{ show: boolean; msg: string }>({ show: false, msg: "" });
 
     const fetchData = async () => {
         setLoading(true);
@@ -84,7 +85,7 @@ export default function DataTab({ token }: { token: string }) {
         setUploading((u) => ({ ...u, [slug]: true }));
         try {
             const res = await uploadDataFile(slug, file, replaceMode[slug] || false, token);
-            showStatus(slug, `✅ ${res.message} (${res.created} entries)`, true);
+            setShowSuccessModal({ show: true, msg: `All files uploaded successfully for ${slug}! Added ${res.created} entries.` });
             fetchData();
         } catch (err: any) {
             showStatus(slug, `❌ ${err.message}`, false);
@@ -356,6 +357,30 @@ export default function DataTab({ token }: { token: string }) {
                         )}
                     </div>
                 ))
+            )}
+            {/* Success Modal Popup */}
+            {showSuccessModal.show && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1.5rem" }}>
+                    <div className="card" style={{ maxWidth: "400px", width: "100%", padding: "2.5rem", textAlign: "center", animation: "popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+                        <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🎉</div>
+                        <h3 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.5rem", color: "var(--text-primary)" }}>Upload Complete!</h3>
+                        <p style={{ color: "var(--text-muted)", fontSize: "1rem", lineHeight: 1.6, marginBottom: "2rem" }}>
+                            {showSuccessModal.msg}
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessModal({ show: false, msg: "" })}
+                            style={{ width: "100%", padding: "0.875rem", borderRadius: "12px", border: "none", background: "var(--brand-600)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: "1rem" }}
+                        >
+                            Got it, thanks!
+                        </button>
+                    </div>
+                    <style>{`
+                        @keyframes popIn {
+                            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+                            to { opacity: 1; transform: scale(1) translateY(0); }
+                        }
+                    `}</style>
+                </div>
             )}
         </div>
     );

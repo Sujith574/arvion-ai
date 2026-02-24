@@ -1,21 +1,21 @@
 {
-  "name": "Izra AI — University Intelligence",
-  "short_name": "Izra AI",
+  "name": "Arvion AI — University Intelligence",
+  "short_name": "Arvion AI",
   "description": "AI-powered platform for university information — admissions, courses, fees, campus life and more.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
-  "theme_color": "#7c3aed",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -34,9 +34,9 @@
   ],
   "shortcuts": [
     {
-      "name": "LPU Chat",
-      "url": "/university/lpu/chat",
-      "description": "Chat with LPU AI"
+      "name": "Arvion Chat",
+      "url": "/",
+      "description": "Chat with University AI"
     }
   ]
 }

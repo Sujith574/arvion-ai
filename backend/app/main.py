@@ -18,7 +18,7 @@ settings = get_settings()
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
-    title="Izra AI API",
+    title="Arvion AI API",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url=None,
@@ -30,12 +30,12 @@ app.add_middleware(GZipMiddleware, minimum_size=500)  # Compress responses >500 
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    # Allow Vercel domains, local dev, and custom domains
-    allow_origins=["*"], 
+    allow_origin_regex=".*", 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 @app.on_event("startup")
@@ -65,12 +65,12 @@ app.include_router(data.router,             prefix="/api/data",            tags=
 app.include_router(university_requests.router, prefix="/api/universities",  tags=["University Requests"])
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 async def health_check():
     return {
         "status": "ok",
-        "service": "Izra AI API",
-        "ai": "gemini_1.5_flash",
+        "service": "University AI Assistant API",
+        "ai": "proprietary_core",
         "rag": "faiss_local",
         "year": 2026,
     }

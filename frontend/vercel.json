@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "buildCommand": "npm run build",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "env": {
+        "NEXT_PUBLIC_API_URL": "https://arvion-backend-348624065149.us-central1.run.app"
+    }
+}

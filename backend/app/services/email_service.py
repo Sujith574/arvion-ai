@@ -24,14 +24,14 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
         return False
 
     if purpose == "reset":
-        subject = "Izra AI — Password Reset OTP"
+        subject = "Arvion AI — Password Reset OTP"
         heading = "Reset Your Password"
-        body_text = "We received a request to reset your Izra AI account password."
+        body_text = "We received a request to reset your Arvion AI account password."
         action_text = "Enter this OTP to set your new password:"
     else:
-        subject = "Izra AI — Verify Your Email"
+        subject = "Arvion AI — Verify Your Email"
         heading = "Verify Your Email Address"
-        body_text = "Thanks for signing up for Izra AI! Please verify your email address."
+        body_text = "Thanks for signing up for Arvion AI! Please verify your email address."
         action_text = "Enter this OTP to complete your registration:"
 
     html_body = f"""
@@ -44,18 +44,18 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#f4f6fa;">
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#6d28d9,#4f46e5);padding:32px 40px;text-align:center;">
-      <h1 style="color:white;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Izra AI</h1>
+    <div style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:32px 40px;text-align:center;">
+      <h1 style="color:white;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Arvion AI</h1>
       <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px;">Intelligent University Assistant</p>
     </div>
     <!-- Body -->
     <div style="padding:40px;">
-      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{heading}</h2>
-      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{body_text}</p>
-      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{action_text}</p>
+      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{{heading}}</h2>
+      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{{body_text}}</p>
+      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{{action_text}}</p>
       <!-- OTP Box -->
-      <div style="background:#f5f3ff;border:2px dashed #a78bfa;border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;">
-        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#6d28d9;font-family:'Courier New',monospace;">{otp}</span>
+      <div style="background:#f5f3ff;border:2px dashed #3b82f6;border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;">
+        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;font-family:'Courier New',monospace;">{{otp}}</span>
       </div>
       <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.5;">
         This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.<br>
@@ -64,17 +64,17 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     </div>
     <!-- Footer -->
     <div style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Izra AI. All rights reserved.</p>
+      <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Arvion AI. All rights reserved.</p>
     </div>
   </div>
 </body>
 </html>
-"""
+""".replace("{{heading}}", heading).replace("{{body_text}}", body_text).replace("{{action_text}}", action_text).replace("{{otp}}", otp)
 
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"Izra AI <{settings.SMTP_FROM_EMAIL}>"
+        msg["From"] = f"Arvion AI <{settings.SMTP_FROM_EMAIL}>"
         msg["To"] = to_email
         msg.attach(MIMEText(html_body, "html"))
 

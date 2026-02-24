@@ -60,7 +60,7 @@ export default function ChatPage() {
         if (messages.length === 0) {
             addMessage({
                 role: "assistant",
-                content: `Hello! 👋 I'm Izra AI, your personal assistant for **${uniName}**.\n\nI can help you with admissions, hostel details, fees, scholarships, exam schedules, and emergencies. What would you like to know?`,
+                content: `Hello! 👋 I'm your University AI Assistant for **${uniName}**.\n\nI can help you with admissions, hostel details, fees, scholarships, exam schedules, and emergencies. What would you like to know?`,
                 timestamp: new Date().toISOString(),
                 confidence: 1,
             } as ChatMessage);
@@ -190,7 +190,7 @@ export default function ChatPage() {
                             AI
                         </div>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: "0.9375rem" }}>Izra AI — LPU</div>
+                            <div style={{ fontWeight: 700, fontSize: "0.9375rem" }}>University AI Assistant</div>
                             <div style={{ fontSize: "0.75rem", color: "#22c55e", display: "flex", alignItems: "center", gap: "0.25rem" }}>
                                 <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
                                 Online · AI powered

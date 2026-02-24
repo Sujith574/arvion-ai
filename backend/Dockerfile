@@ -18,6 +18,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download the embedding model to avoid runtime rate limits
+COPY scripts/download_model.py scripts/
+RUN python scripts/download_model.py && rm scripts/download_model.py
+
+# Point to local model path and enforce offline mode
+ENV EMBEDDING_MODEL=/app/model_cache
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
+ENV SENTENCE_TRANSFORMERS_HOME=/app/model_cache
+
 # Copy project
 COPY . .
 

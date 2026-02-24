@@ -24,16 +24,20 @@ Partial context from the knowledge base (use this if relevant):
 {context}"""
 
 
-async def call_fallback_llm(
+async def generate_response(
     query: str,
     university_id: str,
-    context: str,
+    context: str = "",
+    system_instruction: str = None,
 ) -> str:
     """
-    Primary API: Prolixis API
+    Primary API: Prolixis API (Chat Completions)
     Secondary API (Fallback): Google Gemini
     """
-    prompt = f"System: {SYSTEM_INSTRUCTION.format(university_id=university_id, context=context[:2000])}\nUser: {query}"
+    uni_name = university_id.upper()
+    
+    if not system_instruction:
+        system_instruction = SYSTEM_INSTRUCTION.format(university_id=uni_name, context=context[:2000])
 
     # 1. Primary Attempt: Prolixis API
     if settings.PROLIXIS_API_KEY:
@@ -44,13 +48,21 @@ async def call_fallback_llm(
             }
             payload = {
                 "model": "prolixis-core",
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": query}
+                ],
                 "temperature": 0.2,
-                "max_tokens": 500
+                "max_tokens": 800
             }
             
             # 5-second timeout to prevent extreme hangs before fallback
-            response = requests.post(f"{settings.PROLIXIS_BASE_URL}/v1/chat/completions", json=payload, headers=headers, timeout=5)
+            response = requests.post(
+                f"{settings.PROLIXIS_BASE_URL}/v1/chat/completions", 
+                json=payload, 
+                headers=headers, 
+                timeout=5
+            )
             
             if response.status_code == 200:
                 data = response.json()
@@ -61,26 +73,26 @@ async def call_fallback_llm(
             logger.warning(f"[Prolixis] API call failed: {e}, falling back to Gemini.")
 
     # 2. Fallback Attempt: Gemini API
+    if not client:
+        return "Service temporarily unavailable. Please contact the admissions office."
+
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents=query,
             config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION.format(
-                    university_id=university_id,
-                    context=context[:2000],  # Cap context length
-                ),
+                system_instruction=system_instruction,
                 temperature=0.2,
-                max_output_tokens=500,
+                max_output_tokens=800,
                 candidate_count=1,
             ),
         )
 
-        return response.text
+        return response.text if response.text else "I apologize, but I couldn't generate a response."
 
     except Exception as e:
         logger.error(f"[Gemini] Fallback failed completely: {e}")
         return (
-            "I'm having trouble answering that right now. "
-            "Please contact the admissions office directly for accurate information."
+            f"I'm sorry, I'm having trouble connecting to my knowledge base for {uni_name}. "
+            "Please try again in a moment or contact the university admissions office directly."
         )
