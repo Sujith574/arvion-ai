@@ -5,9 +5,12 @@
  */
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
-export const API_BASE = (envUrl && envUrl !== "undefined")
+let base = (envUrl && envUrl !== "undefined")
     ? envUrl
     : "https://arvion-backend-348624065149.us-central1.run.app";
+
+// Normalize: remove trailing slash
+export const API_BASE = base.endsWith("/") ? base.slice(0, -1) : base;
 
 // ── Types ──────────────────────────────────────────────────────
 export interface ChatMessage {
@@ -101,7 +104,7 @@ export async function authLogin(data: {
     email: string;
     password: string;
 }): Promise<AuthResponse> {
-    const res = await fetch(`${API_BASE}/api/auth/signin`, {
+    const res = await fetch(`${API_BASE}/api/auth/token`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(data),

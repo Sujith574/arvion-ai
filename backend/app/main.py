@@ -31,16 +31,9 @@ app.add_middleware(SecurityMiddleware)
 
 # CORS must be the absolute outermost middleware (added last in FastAPI)
 # to ensure it handles preflight OPTIONS requests before any other logic.
-origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://arvion-frontend-348624065149.us-central1.run.app",
-    "https://arvion-ai.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
