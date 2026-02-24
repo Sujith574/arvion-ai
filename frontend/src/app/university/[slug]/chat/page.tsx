@@ -115,7 +115,7 @@ export default function ChatPage() {
         } catch (err: any) {
             // Show a more meaningful error — check if it's an API error or a network error
             const msg = err?.message?.includes("fetch")
-                ? "⚠️ Cannot reach the server. Please make sure the backend is running on port 8000."
+                ? "⚠️ Cannot reach the server. If you are on Vercel, ensure NEXT_PUBLIC_API_URL is set in your project settings and you have redeployed."
                 : err?.message || "Something went wrong. Please try again.";
             addMessage({
                 role: "assistant",
