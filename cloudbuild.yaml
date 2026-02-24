@@ -32,10 +32,12 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--min-instances'
+      - '1'
       - '--port'
       - '8080'
       - '--set-env-vars'
-      - 'FIREBASE_PROJECT_ID=arvion-241094,JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,GEMINI_API_KEY=AIzaSyAsBu79AsRn4nDZ8uJaelDfO_ARM6owsgk,SMTP_FROM_EMAIL=sujithlavudu@gmail.com,SMTP_APP_PASSWORD=lcwe ulws ysnm zinn,FRONTEND_URL=https://arvion-ai.vercel.app,PROLIXIS_API_KEY=,PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
+      - 'FIREBASE_PROJECT_ID=arvion-241094,JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,GEMINI_API_KEY=AIzaSyAsBu79AsRn4nDZ8uJaelDfO_ARM6owsgk,SMTP_FROM_EMAIL=sujithlavudu@gmail.com,SMTP_APP_PASSWORD=lcwe ulws ysnm zinn,FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app,PROLIXIS_API_KEY=,PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
     id: 'Deploy Backend'
 
 # ==============================================================================
@@ -73,11 +75,13 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--min-instances'
+      - '1'
       - '--port'
       - '3000'
       # Ensuring the frontend has context of the live backend API
       - '--update-env-vars'
-      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-304443722237.us-central1.run.app'
+      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-348624065149.us-central1.run.app'
     id: 'Deploy Frontend'
 
 images:

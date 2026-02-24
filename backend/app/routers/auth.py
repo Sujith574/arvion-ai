@@ -167,7 +167,7 @@ async def signup(body: SignupRequest):
     return {"access_token": token, "token_type": "bearer", "role": role}
 
 
-@router.post("/login")
+@router.post("/signin")
 async def login(body: LoginRequest):
     loop = asyncio.get_event_loop()
     db = get_db()

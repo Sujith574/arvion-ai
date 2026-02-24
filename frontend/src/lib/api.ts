@@ -98,7 +98,7 @@ export async function authLogin(data: {
     email: string;
     password: string;
 }): Promise<AuthResponse> {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
+    const res = await fetch(`${API_BASE}/api/auth/signin`, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(data),

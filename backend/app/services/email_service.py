@@ -50,12 +50,12 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     </div>
     <!-- Body -->
     <div style="padding:40px;">
-      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{{heading}}</h2>
-      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{{body_text}}</p>
-      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{{action_text}}</p>
+      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{heading}</h2>
+      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{body_text}</p>
+      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{action_text}</p>
       <!-- OTP Box -->
       <div style="background:#f5f3ff;border:2px dashed #3b82f6;border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;">
-        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;font-family:'Courier New',monospace;">{{otp}}</span>
+        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;font-family:'Courier New',monospace;">{otp}</span>
       </div>
       <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.5;">
         This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.<br>
@@ -69,7 +69,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
   </div>
 </body>
 </html>
-""".replace("{{heading}}", heading).replace("{{body_text}}", body_text).replace("{{action_text}}", action_text).replace("{{otp}}", otp)
+"""
 
     try:
         msg = MIMEMultipart("alternative")
