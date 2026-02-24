@@ -1,0 +1,84 @@
+steps:
+# ==============================================================================
+# 1. Backend Build, Push, & Deploy
+# ==============================================================================
+  # Build Backend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+      - './backend'
+    id: 'Build Backend'
+
+  # Push Backend Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+    id: 'Push Backend'
+
+  # Deploy Backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'arvion-backend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+    id: 'Deploy Backend'
+
+# ==============================================================================
+# 2. Frontend Build, Push, & Deploy
+# ==============================================================================
+  # Build Frontend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+      - './frontend'
+    id: 'Build Frontend'
+
+  # Push Frontend Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+    id: 'Push Frontend'
+
+  # Deploy Frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'arvion-frontend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      # Ensuring the frontend has context of the live backend API
+      - '--update-env-vars'
+      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-304443722237.us-central1.run.app'
+    id: 'Deploy Frontend'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/backend:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
