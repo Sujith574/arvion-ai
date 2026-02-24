@@ -4,7 +4,10 @@
  * Typed wrapper around all backend REST endpoints.
  */
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://arvion-backend-348624065149.us-central1.run.app";
+const envUrl = process.env.NEXT_PUBLIC_API_URL;
+export const API_BASE = (envUrl && envUrl !== "undefined")
+    ? envUrl
+    : "https://arvion-backend-348624065149.us-central1.run.app";
 
 // ── Types ──────────────────────────────────────────────────────
 export interface ChatMessage {

@@ -26,11 +26,21 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(GZipMiddleware, minimum_size=500)  # Compress responses >500 bytes
+app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(SecurityMiddleware)
+
+# CORS must be the absolute outermost middleware (added last in FastAPI)
+# to ensure it handles preflight OPTIONS requests before any other logic.
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://arvion-frontend-348624065149.us-central1.run.app",
+    "https://arvion-ai.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*", 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
