@@ -18,11 +18,11 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://izra.ai"),
   title: {
-    default: "Arvion AI — Intelligent University Assistant",
-    template: "%s | Arvion AI",
+    default: "Izra — Intelligent University Assistant",
+    template: "%s | Izra",
   },
   description:
-    "Arvion AI provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
+    "Izra provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
   keywords: [
     "university assistant",
     "AI chatbot",
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
     "admission guidance",
     "student support",
     "college assistant",
-    "Arvion AI",
+    "Izra",
   ],
-  authors: [{ name: "Arvion AI" }],
-  creator: "Arvion AI",
+  authors: [{ name: "Izra" }],
+  creator: "Izra",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://arvion.ai",
-    siteName: "Arvion AI",
-    title: "Arvion AI — Intelligent University Assistant",
+    url: "https://izra.ai",
+    siteName: "Izra",
+    title: "Izra — Intelligent University Assistant",
     description:
       "24/7 AI-powered university guidance for students, parents, and admission seekers.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Arvion AI",
+    title: "Izra",
   },
 };
 
@@ -87,7 +87,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('arvion-theme') ||
+                  var theme = localStorage.getItem('izra-theme') ||
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                   document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}

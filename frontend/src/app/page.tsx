@@ -543,7 +543,7 @@ export default function HomePage() {
         <section id="features" style={{ padding: "6rem 1.5rem" }}>
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
             <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
-              <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--brand-600)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.75rem" }}>Why Arvion AI</p>
+              <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--brand-600)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.75rem" }}>Why Izra</p>
               <h2 style={{ fontSize: "clamp(1.875rem, 4vw, 2.75rem)", fontWeight: 800 }}>Everything You Need, Instantly</h2>
             </div>
             <div className="features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.25rem" }}>
@@ -608,7 +608,7 @@ export default function HomePage() {
               <span className="gradient-text">smarter answers?</span>
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "1.0625rem", marginBottom: "2.5rem", lineHeight: 1.7 }}>
-              Join thousands of students and parents who use Arvion AI every day.
+              Join thousands of students and parents who use Izra every day.
             </p>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/auth/signup" className="btn-primary" style={{ padding: "0.875rem 2rem", fontSize: "1rem" }}>
@@ -643,7 +643,7 @@ export default function HomePage() {
               {icons.instagram}
             </a>
           </div>
-          <p>© 2026 Arvion AI. Built for students, by builders.</p>
+          <p>© 2026 Izra. Built for students, by builders.</p>
         </footer>
       </main>
 

@@ -24,14 +24,14 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
         return False
 
     if purpose == "reset":
-        subject = "Arvion AI — Password Reset OTP"
+        subject = "Izra — Password Reset OTP"
         heading = "Reset Your Password"
-        body_text = "We received a request to reset your Arvion AI account password."
+        body_text = "We received a request to reset your Izra account password."
         action_text = "Enter this OTP to set your new password:"
     else:
-        subject = "Arvion AI — Verify Your Email"
+        subject = "Izra — Verify Your Email"
         heading = "Verify Your Email Address"
-        body_text = "Thanks for signing up for Arvion AI! Please verify your email address."
+        body_text = "Thanks for signing up for Izra! Please verify your email address."
         action_text = "Enter this OTP to complete your registration:"
 
     html_body = f"""
@@ -45,7 +45,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:32px 40px;text-align:center;">
-      <h1 style="color:white;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Arvion AI</h1>
+      <h1 style="color:white;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Izra</h1>
       <p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px;">Intelligent University Assistant</p>
     </div>
     <!-- Body -->
@@ -64,7 +64,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     </div>
     <!-- Footer -->
     <div style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Arvion AI. All rights reserved.</p>
+      <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Izra. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -74,7 +74,7 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"Arvion AI <{settings.SMTP_FROM_EMAIL}>"
+        msg["From"] = f"Izra <{settings.SMTP_FROM_EMAIL}>"
         msg["To"] = to_email
         msg.attach(MIMEText(html_body, "html"))
 

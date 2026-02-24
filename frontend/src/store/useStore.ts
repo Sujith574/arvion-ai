@@ -118,11 +118,11 @@ export const useStore = create<Store>()(
                 const next = get().theme === "light" ? "dark" : "light";
                 set({ theme: next });
                 document.documentElement.setAttribute("data-theme", next);
-                try { localStorage.setItem("arvion-theme", next); } catch { }
+                try { localStorage.setItem("izra-theme", next); } catch { }
             },
         }),
         {
-            name: "arvion-store",
+            name: "izra-store",
             // Only persist auth + theme (not chat messages)
             partialize: (state) => ({
                 token: state.token,

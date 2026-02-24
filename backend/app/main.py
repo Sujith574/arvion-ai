@@ -18,7 +18,7 @@ settings = get_settings()
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
-    title="Arvion AI API",
+    title="Izra API",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url=None,
