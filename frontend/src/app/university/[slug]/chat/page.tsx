@@ -156,7 +156,9 @@ export default function ChatPage() {
                 <div
                     style={{
                         borderBottom: "1px solid var(--border)",
-                        background: "var(--surface)",
+                        background: "rgba(255, 255, 255, 0.7)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
                         padding: "0.875rem 1.25rem",
                         display: "flex",
                         alignItems: "center",
@@ -164,6 +166,7 @@ export default function ChatPage() {
                         gap: "1rem",
                         boxShadow: "var(--shadow-sm)",
                         flexShrink: 0,
+                        zIndex: 10,
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
@@ -226,7 +229,8 @@ export default function ChatPage() {
                     style={{
                         padding: "0.625rem 1rem",
                         borderBottom: "1px solid var(--border)",
-                        background: "var(--bg-subtle)",
+                        background: "rgba(249, 250, 251, 0.5)",
+                        backdropFilter: "blur(8px)",
                         overflowX: "auto",
                         flexShrink: 0,
                         display: "flex",
@@ -327,7 +331,9 @@ export default function ChatPage() {
                     style={{
                         padding: "0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom))",
                         borderTop: "1px solid var(--border)",
-                        background: "var(--surface)",
+                        background: "rgba(255, 255, 255, 0.8)",
+                        backdropFilter: "blur(16px)",
+                        WebkitBackdropFilter: "blur(16px)",
                         flexShrink: 0,
                     }}
                 >

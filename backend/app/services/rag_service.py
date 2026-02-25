@@ -23,6 +23,7 @@ from app.services.llm_service import generate_response
 from app.services.prolixis_service import search_memories, store_memory, build_memory_context
 from app.services.firebase import get_knowledge_base
 from app.services.vector_store import get_vector_store
+from app.services.semantic_cache import get_semantic_cache
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -156,8 +157,21 @@ class RAGService:
 
     async def _query_impl(self, query: str, university_name: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
         uni_name = university_name or self.university_id.upper()
+        
+        # ── Step 0: Get Query Embedding (needed for both Cache and Search) ─
+        query_emu = await get_embedding(query)
 
-        # ── Step 0: Memory Context ──────────────────────────────────
+        # ── Step 0b: Semantic Cache Lookup ──────────────────────────
+        cache = get_semantic_cache(self.university_id)
+        cached_result = await cache.lookup(query_emu, threshold=0.96)
+        if cached_result:
+            return {
+                **cached_result,
+                "sources": ["semantic_cache"],
+                "used_fallback": False
+            }
+
+        # ── Step 0c: Memory Context ──────────────────────────────────
         memory_results = ""
         if user_id and user_id != "anonymous":
             try:
@@ -192,7 +206,7 @@ class RAGService:
             await self.load_kb()
 
         try:
-            query_emu = await get_embedding(query)
+            # We already have the embedding from Step 0
             context_docs = self.vector_store.search(query_emu, top_k=5)
         except Exception as e:
             logger.error(f"[RAG] Search failed: {e}")
@@ -229,6 +243,15 @@ class RAGService:
                     lambda: asyncio.run(store_memory(f"Q: {query} | A: {answer}", user_id, "chat", 3))
                 )
             except Exception: pass
+
+        # ── Step 6: Atomic Cache Store (if high confidence or AI was good) ──
+        if answer and top_score > 0.6:
+            try:
+                # Store in cache for future users
+                _executor.submit(
+                    lambda: asyncio.run(cache.store(query, query_emu, answer, context_docs[0].get("category", "general") if context_docs else "general"))
+                )
+            except: pass
 
         return {
             "answer": answer,

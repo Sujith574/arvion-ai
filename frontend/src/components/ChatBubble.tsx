@@ -4,6 +4,7 @@ import { useState } from "react";
 import { type ChatMessage, sendChatFeedback } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatBubbleProps {
     message: ChatMessage;
@@ -77,13 +78,20 @@ export default function ChatBubble({ message, isNew }: ChatBubbleProps) {
     });
 
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                duration: 0.3
+            }}
             style={{
                 display: "flex",
                 flexDirection: isUser ? "row-reverse" : "row",
                 alignItems: "flex-end",
                 gap: "0.5rem",
-                animation: isNew ? "fadeInUp 0.3s ease-out" : "none",
             }}
         >
             {/* Avatar */}
@@ -223,7 +231,7 @@ export default function ChatBubble({ message, isNew }: ChatBubbleProps) {
                     )}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -238,7 +246,11 @@ const BotIconSmall = () => (
 
 export function TypingIndicator() {
     return (
-        <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", animation: "fadeInUp 0.3s ease-out" }}>
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}
+        >
             <div style={{
                 width: "32px", height: "32px", borderRadius: "50%",
                 background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))",
@@ -254,6 +266,6 @@ export function TypingIndicator() {
                     <span className="typing-dot" />
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
