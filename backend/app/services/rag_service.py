@@ -13,13 +13,8 @@ Key improvements:
 import logging
 import asyncio
 import re
-from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache
-from app.services.firebase import get_knowledge_base
-from app.config import get_settings
-from google import genai
-from google.genai import types
 from app.services.llm_service import generate_response
+from app.services.prolixis_service import search_memories, store_memory, build_memory_context
 
 try:
     import numpy as np
@@ -134,40 +129,18 @@ class RAGService:
         self.university_id = university_id
         self.model = get_embedding_model()
 
-    async def _call_ai(self, query: str, context: str = "", is_greeting: bool = False) -> str:
-        uni = self.university_id.upper()
-        if is_greeting:
-            prompt = (
-                f"You are the official highly-accurate AI assistant for {uni} university.\n"
-                f"Your mission is to provide students with 100% accurate information.\n"
-                f"Greet the user warmly, state you are the {uni} AI Assistant, and invite them to ask about admissions, courses, fees, hostel, or campus life.\n"
-                f"Be brief and professional. Current year: 2026.\n\n"
-                f"User: {query}"
-            )
-        elif context:
-            prompt = (
-                f"You are the official AI assistant for {uni} university. You must answer ONLY using the provided KNOWLEDGE BASE if it contains the answer.\n"
-                f"If the KNOWLEDGE BASE is insufficient or irrelevant, use your general knowledge but PRIORITIZE university-specific facts.\n"
-                f"STRICT RULES:\n"
-                f"1. Accuracy is your top priority. Do not guess. Do not make mistakes.\n"
-                f"2. If asked about your identity, you are the official AI for {uni}, trained on their private data.\n"
-                f"3. Do not mention model names (Prolixis, Gemini, OpenAI).\n"
-                f"4. For comparisons (e.g., {uni} vs others), be fair but emphasize {uni}'s strengths.\n"
-                f"5. Refuse non-university questions (cooking, coding scripts, etc.) politely.\n\n"
-                f"=== KNOWLEDGE BASE FROM {uni} ===\n{context}\n================================\n\n"
-                f"User Question: {query}\n\n"
-                f"Final Accurate Answer:"
-            )
-        else:
-            prompt = (
-                f"You are the official AI assistant for {uni} university.\n"
-                f"Answer the following question about {uni} as accurately as possible.\n"
-                f"If you are unsure, suggest contacting the {uni} admissions office directly.\n"
-                f"Current year: 2026.\n\n"
-                f"User Question: {query}\n\nAnswer:"
-            )
+    async def _call_ai(self, query: str, university_name: str = "", context: str = "", memory_results: str = "", is_greeting: bool = False) -> str:
+        uni_name = university_name or self.university_id.upper()
         
-        return await generate_response(query, self.university_id, system_instruction=prompt)
+        # Note: If is_greeting is True, we currently use a deterministic response in _query_impl, 
+        # but here we preserve the AI call capability using the master prompt structure.
+        return await generate_response(
+            query=query, 
+            university_id=self.university_id,
+            university_name=uni_name,
+            context=context,
+            memory_results=memory_results
+        )
 
 
     # ── FAISS index (per-university, isolated) ─────────────────────────────
@@ -237,17 +210,17 @@ class RAGService:
     async def query(
         self,
         query: str,
+        university_name: str = "",
         confidence_threshold: float = 0.55,
         category_filter: str | None = None,
         user_id: str | None = None,
     ) -> dict:
         try:
-            return await self._query_impl(query, confidence_threshold, category_filter, user_id)
+            return await self._query_impl(query, university_name, confidence_threshold, category_filter, user_id)
         except Exception as e:
             logger.exception(f"[RAG] Unhandled error: {e}")
             # Emergency fallback
-            # Controlled university-focused fallback
-            uni = self.university_id.upper()
+            uni = university_name or self.university_id.upper()
             return {
                 "answer": f"I couldn't find specific information about that in the official {uni} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships.",
                 "category": "general",
@@ -257,15 +230,24 @@ class RAGService:
             }
 
 
-    async def _query_impl(self, query: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
+    async def _query_impl(self, query: str, university_name: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
+        uni_name = university_name or self.university_id.upper()
+
+        # ── Step 0: Fetch Memory Context (Prolixis) ───────────────────────
+        memory_results = ""
+        if user_id and user_id != "anonymous":
+            try:
+                m_list = await search_memories(query, user_id)
+                memory_results = build_memory_context(m_list)
+            except Exception as e:
+                logger.warning(f"[RAG] Memory search failed: {e}")
 
         # ── Step 1: Detect greeting / small-talk ──────────────────────────
         if _is_conversational(query):
-            uni = self.university_id.upper()
             answer = (
-                f"Hello! 👋 I'm your {uni} AI Assistant. "
-                f"I'm here to help you with information about admissions, hostel, fees, exams, "
-                f"scholarships, or any other information related to this university. "
+                f"Hello! 👋 I'm your {uni_name} AI Assistant. "
+                "I'm here to help you with information about admissions, hostel, fees, exams, "
+                "scholarships, or any other information related to this university. "
                 "What would you like to know?"
             )
 
@@ -279,20 +261,10 @@ class RAGService:
 
         # ── Step 1b: Detect identity / meta questions — bypass FAISS ──────
         if _is_identity_query(query):
-            uni = self.university_id.upper()
-            prompt = (
-                f"You are the official AI assistant for {uni} university, built specifically for {uni} students, parents, and applicants.\n"
-                f"The user is asking a meta/identity question about you (the AI assistant).\n"
-                f"IMPORTANT: Do NOT discuss university entrance exams or training programs. Answer about yourself as an AI assistant.\n\n"
-                f"Respond warmly and briefly: explain that you are Arvix AI, the official AI assistant for {uni}, "
-                f"that you were trained on {uni}'s official data and knowledge base, "
-                f"powered by advanced AI technology. You can help with admissions, fees, hostel, courses, placements, campus life, and emergencies.\n\n"
-                f"User question: {query}\n\nAnswer:"
-            )
             try:
-                answer = await self._call_ai(query, context=prompt)
+                answer = await self._call_ai(query, university_name=uni_name, memory_results=memory_results)
             except Exception:
-                answer = f"I'm Arvix AI, the official assistant for {self.university_id.upper()}, here to help students, parents, and applicants with accurate information about admissions, courses, fees, and campus life."
+                answer = f"I'm Arvix AI, the official assistant for {uni_name}, here to help students, parents, and applicants with accurate information about admissions, courses, fees, and campus life."
             return {
                 "answer": answer,
                 "category": "general",
@@ -371,7 +343,12 @@ class RAGService:
 
         # ── Step 6: Always send context to AI for best answer ─────────
         # AI synthesizes across ALL top results for accurate, complete answers
-        answer = await self._call_ai(query, context=kb_context)
+        answer = await self._call_ai(
+            query=query, 
+            university_name=uni_name, 
+            context=kb_context, 
+            memory_results=memory_results
+        )
         
         if not answer:
             # AI failed or low confidence → use best direct KB match or controlled fallback
@@ -379,9 +356,18 @@ class RAGService:
                 answer = top_doc.get("answer")
                 logger.info(f"[RAG] AI failed, falling back to top KB match (score={top_score:.3f})")
             else:
-                uni = self.university_id.upper()
-                answer = f"I couldn't find specific information about that in the official {uni} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships."
+                answer = f"I couldn't find specific information about that in the official {uni_name} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships."
                 logger.info(f"[RAG] AI failed and low confidence ({top_score:.3f}), using fallback.")
+
+        # ── Step 7: Store Interaction in Memory (Prolixis) ────────────────
+        if user_id and user_id != "anonymous" and answer:
+            # run_in_executor to avoid blocking the response
+            try:
+                _executor.submit(
+                    asyncio.run, store_memory(f"Q: {query} | A: {answer}", user_id, "chat", 3)
+                )
+            except Exception as e:
+                logger.warning(f"[RAG] Memory storage background task failed: {e}")
 
         return {
             "answer": answer,

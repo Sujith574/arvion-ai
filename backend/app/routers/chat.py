@@ -49,6 +49,7 @@ async def chat_message(request: Request, body: ChatRequest):
     rag = RAGService(university_id=body.university_slug)
     result = await rag.query(
         query=body.query,
+        university_name=university.get("name", ""),
         confidence_threshold=university.get("confidence_threshold", 0.75),
         category_filter=body.category_filter,
         user_id=body.user_id or "anonymous",   # Prolixis memory namespace
