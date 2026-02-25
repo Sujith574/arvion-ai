@@ -157,16 +157,16 @@ export default function DataTab({ token }: { token: string }) {
             />
 
             {/* Header + new university button */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                    <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.25rem" }}>University Data Management</h2>
-                    <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <h2 style={{ fontSize: "1.125rem", fontWeight: 800, marginBottom: "0.25rem" }}>University Data Management</h2>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.8125rem" }}>
                         Upload data files to power the AI chat for each university. Supports JSON, CSV, TXT, XLSX.
                     </p>
                 </div>
                 <button
                     onClick={() => setShowNewForm((v) => !v)}
-                    style={{ padding: "0.75rem 1.25rem", borderRadius: "10px", border: "none", background: "var(--brand-600)", color: "white", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
+                    style={{ padding: "0.625rem 1rem", borderRadius: "10px", border: "none", background: "var(--brand-600)", color: "white", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
                 >
                     + Add University
                 </button>
@@ -183,20 +183,20 @@ export default function DataTab({ token }: { token: string }) {
             {showNewForm && (
                 <div className="card" style={{ padding: "1.75rem", border: "2px solid var(--brand-600)" }}>
                     <h3 style={{ fontWeight: 700, marginBottom: "0.75rem" }}>Create New University</h3>
-                    <form onSubmit={handleCreate} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <form onSubmit={handleCreate} style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
                         <div>
                             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--text-secondary)" }}>University Name *</label>
-                            <input required value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. IIT Bombay" style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }} />
+                            <input required value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. IIT Bombay" style={{ width: "100%", boxSizing: "border-box", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }} />
                         </div>
                         <div>
                             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--text-secondary)" }}>URL Slug (unique ID) *</label>
-                            <input required value={newSlug} onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} placeholder="e.g. iit-bombay" style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }} />
+                            <input required value={newSlug} onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} placeholder="e.g. iit-bombay" style={{ width: "100%", boxSizing: "border-box", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }} />
                         </div>
-                        <div style={{ gridColumn: "1/-1" }}>
+                        <div>
                             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "0.25rem", color: "var(--text-secondary)" }}>Description</label>
-                            <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} rows={2} placeholder="Optional brief description" style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)", resize: "vertical" }} />
+                            <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} rows={2} placeholder="Optional brief description" style={{ width: "100%", boxSizing: "border-box", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)", resize: "vertical" }} />
                         </div>
-                        <div style={{ gridColumn: "1/-1", display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
                             <button type="button" onClick={() => setShowNewForm(false)} style={{ padding: "0.625rem 1.25rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", color: "var(--text-secondary)" }}>Cancel</button>
                             <button type="submit" disabled={creating} style={{ padding: "0.625rem 1.5rem", borderRadius: "8px", border: "none", background: "var(--brand-600)", color: "white", fontWeight: 700, cursor: creating ? "not-allowed" : "pointer" }}>
                                 {creating ? "Creating..." : "Create & Publish"}
@@ -244,7 +244,7 @@ export default function DataTab({ token }: { token: string }) {
 
                         {/* Expanded details */}
                         {expanded && (
-                            <div style={{ padding: "1.5rem", borderTop: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                            <div style={{ padding: "1.25rem 1rem", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                                 {/* LEFT: Data upload */}
                                 <div>
                                     <h4 style={{ fontWeight: 700, marginBottom: "0.75rem", fontSize: "0.9375rem" }}>📂 Data Files</h4>
@@ -338,9 +338,9 @@ export default function DataTab({ token }: { token: string }) {
                                         <div style={{ fontWeight: 700, color: "#be123c", marginBottom: "0.5rem", fontSize: "0.875rem" }}>⚠️ Danger Zone</div>
                                         <button
                                             onClick={() => handleDeleteUni(uni.slug, uni.name)}
-                                            style={{ width: "100%", padding: "0.625rem", borderRadius: "8px", border: "1px solid #fecaca", background: "white", color: "#be123c", fontWeight: 700, cursor: "pointer", fontSize: "0.8125rem" }}
+                                            style={{ width: "100%", padding: "0.625rem", borderRadius: "8px", border: "1px solid #fecaca", background: "white", color: "#be123c", fontWeight: 700, cursor: "pointer", fontSize: "0.8125rem", wordBreak: "break-word", textAlign: "center" }}
                                         >
-                                            Delete '{uni.name}' Permanently
+                                            Delete &apos;{uni.name}&apos; Permanently
                                         </button>
                                     </div>
                                 </div>

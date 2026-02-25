@@ -111,7 +111,7 @@ export default function AdminDashboard() {
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: "4rem", minHeight: "100vh", background: "var(--bg-subtle)" }}>
+            <main style={{ paddingTop: "4rem", minHeight: "100vh", background: "var(--bg-subtle)", overflowX: "hidden" }}>
                 {/* ── Header ─────────────────────────────────── */}
                 <div style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%)", padding: "2.5rem 1.5rem", color: "white" }}>
                     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -129,9 +129,9 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+                <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.25rem 1rem" }}>
                     {/* ── Stats Grid ────────────────────────────── */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
+                    <div className="admin-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
                         {statCards.map((card, i) => (
                             <div key={i} className="card" style={{ padding: "1.5rem" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
@@ -149,30 +149,32 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* ── Tabs ─────────────────────────────────── */}
-                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "fit-content" }}>
-                        {(["overview", "logs", "knowledge", "university", "data"] as const).map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                style={{
-                                    padding: "0.5rem 1.1rem", borderRadius: "10px", border: "none", cursor: "pointer",
-                                    fontSize: "0.875rem", fontWeight: 600, transition: "all 0.2s ease",
-                                    background: activeTab === tab ? "var(--brand-600)" : "transparent",
-                                    color: activeTab === tab ? "white" : "var(--text-secondary)",
-                                }}
-                            >
-                                {tab === "overview" && "📊 Overview"}
-                                {tab === "logs" && "📋 Query Logs"}
-                                {tab === "knowledge" && "🧠 Knowledge"}
-                                {tab === "university" && "🏫 Approvals"}
-                                {tab === "data" && "📁 Data Files"}
-                            </button>
-                        ))}
+                    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "1.5rem", paddingBottom: "2px" }}>
+                        <div style={{ display: "flex", gap: "0.25rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "max-content", minWidth: "100%" }}>
+                            {(["overview", "logs", "knowledge", "university", "data"] as const).map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    style={{
+                                        padding: "0.5rem 0.875rem", borderRadius: "10px", border: "none", cursor: "pointer",
+                                        fontSize: "0.8125rem", fontWeight: 600, transition: "all 0.2s ease", whiteSpace: "nowrap",
+                                        background: activeTab === tab ? "var(--brand-600)" : "transparent",
+                                        color: activeTab === tab ? "white" : "var(--text-secondary)",
+                                    }}
+                                >
+                                    {tab === "overview" && "📊 Overview"}
+                                    {tab === "logs" && "📋 Logs"}
+                                    {tab === "knowledge" && "🧠 Knowledge"}
+                                    {tab === "university" && "🏫 Approvals"}
+                                    {tab === "data" && "📁 Data Files"}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* ── Overview ─────────────────────────────── */}
                     {activeTab === "overview" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                        <div className="admin-overview-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
                             {/* Category Chart */}
                             <div className="card" style={{ padding: "1.75rem", gridColumn: "1 / -1" }}>
                                 <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.5rem" }}>Queries by Category</h2>
@@ -308,7 +310,18 @@ export default function AdminDashboard() {
                     {/* ── Data File Management ───────────────────── */}
                     {activeTab === "data" && <DataTab token={token!} />}
                 </div>
-            </main >
+            </main>
+
+            <style>{`
+                @media (min-width: 640px) {
+                    .admin-overview-grid {
+                        grid-template-columns: 1fr 1fr !important;
+                    }
+                    .admin-stats-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+                    }
+                }
+            `}</style>
         </>
     );
 }
