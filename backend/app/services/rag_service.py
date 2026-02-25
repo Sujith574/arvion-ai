@@ -148,7 +148,7 @@ class RAGService:
             logger.exception(f"[RAG] Unhandled error: {e}")
             uni = university_name or self.university_id.upper()
             return {
-                "answer": f"I couldn't find specific information about that in the official {uni} data. Please contact the university directly.",
+                "answer": f"I'm sorry, that specific information is not available in our current records for {uni}.",
                 "category": "general",
                 "confidence": 0.0,
                 "sources": [],
@@ -183,7 +183,7 @@ class RAGService:
         # ── Step 1: Greeting / Identity ─────────────────────────────
         if _is_conversational(query):
             return {
-                "answer": f"Hello! 👋 I'm your {uni_name} AI Assistant. How can I help you today?",
+                "answer": f"Hello! 👋 I'm your {uni_name} AI Assistant. I can help you with admissions, courses, fees, scholarships, placements, and more. How can I assist you today?",
                 "category": "general",
                 "confidence": 1.0,
                 "sources": ["deterministic_greeting"],
@@ -234,7 +234,7 @@ class RAGService:
             if top_score > 0.45:
                 answer = context_docs[0].get("answer")
             else:
-                answer = f"I'm sorry, I couldn't find official information about that in the {uni_name} data."
+                answer = f"I'm sorry, that specific information is not available in our current records for {uni_name}."
 
         # ── Step 5: Background Memory Store ──────────────────────────
         if user_id and user_id != "anonymous" and answer:
