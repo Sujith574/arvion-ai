@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Arvion AI</string>
-    <string name="title_activity_main">Arvion AI</string>
+    <string name="app_name">Arvix AI</string>
+    <string name="title_activity_main">Arvix AI</string>
     <string name="package_name">com.arvion.app</string>
     <string name="custom_url_scheme">com.arvion.app</string>
 </resources>

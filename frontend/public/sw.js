@@ -1,5 +1,5 @@
-// Arvion AI Service Worker — v1
-const CACHE_NAME = "arvion-ai-v1";
+// Arvix AI Service Worker — v1
+const CACHE_NAME = "arvix-ai-v1";
 const STATIC_ASSETS = [
     "/",
     "/manifest.json",
