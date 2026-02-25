@@ -4,7 +4,6 @@ uvicorn[standard]
 pydantic[email]
 pydantic-settings
 python-jose[cryptography]
-
 bcrypt
 firebase-admin
 email-validator
@@ -15,10 +14,14 @@ faiss-cpu
 torch
 transformers
 httpx
+requests
+numpy
+openpyxl
 slowapi
 jinja2
 google-cloud-firestore
 google-cloud-storage
+google-genai
 google-ai-generativelanguage
 google-api-python-client
 google-auth
