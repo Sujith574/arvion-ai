@@ -74,8 +74,10 @@ def invalidate_universities_cache(slug: Optional[str] = None):
 
 async def get_knowledge_base(university_id: str) -> list[dict]:
     db = get_db()
+    # Optimization: Only select fields needed for the RAG engine
     docs = (
         db.collection("university_knowledge")
+        .select(["question", "answer", "category", "source", "embedding_vector"])
         .where("university_id", "==", university_id)
         .where("verified", "==", True)
         .stream()

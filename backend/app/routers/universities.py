@@ -40,6 +40,7 @@ async def list_universities(response: Response):
                 "description": data.get("description"),
                 "established": data.get("established"),
                 "students_count": data.get("students_count"),
+                "uploaded_files": data.get("uploaded_files", []), # For dashboard speed
             })
 
     result = {"universities": unis}

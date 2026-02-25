@@ -118,11 +118,11 @@ export const useStore = create<Store>()(
                 const next = get().theme === "light" ? "dark" : "light";
                 set({ theme: next });
                 document.documentElement.setAttribute("data-theme", next);
-                try { localStorage.setItem("izra-theme", next); } catch { }
+                try { localStorage.setItem("arvix-theme", next); } catch { }
             },
         }),
         {
-            name: "izra-store",
+            name: "arvix-store",
             // Only persist auth + theme (not chat messages)
             partialize: (state) => ({
                 token: state.token,

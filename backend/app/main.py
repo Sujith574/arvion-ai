@@ -52,11 +52,23 @@ async def startup_warmup():
     except Exception as e:
         logger.warning(f"[Startup] Firestore warmup failed (non-fatal): {e}")
     try:
-        from app.services.rag_service import get_embedding_model
+        from app.services.rag_service import get_embedding_model, RAGService
+        # Warm up the heavy embedding model in a separate thread
         asyncio.get_event_loop().run_in_executor(None, get_embedding_model)
-        logger.info("[Startup] Embedding model loading triggered in background")
+        
+        # Proactively build the index for LPU so the first user gets an instant response
+        # Using a background task so it doesn't block the actual server start
+        async def warm_lpu():
+            try:
+                rag = RAGService("lpu")
+                await rag.query("hi") 
+                logger.info("[Startup] LPU Knowledge Base index warmed up")
+            except: pass
+            
+        asyncio.create_task(warm_lpu())
+        logger.info("[Startup] Background warmup tasks initiated")
     except Exception as e:
-        logger.warning(f"[Startup] Embedding model warmup failed (non-fatal): {e}")
+        logger.warning(f"[Startup] Warmup failed (non-fatal): {e}")
 
 app.include_router(auth.router,           prefix="/api/auth",         tags=["Auth"])
 app.include_router(chat.router,           prefix="/api/chat",         tags=["Chat"])

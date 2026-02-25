@@ -187,22 +187,37 @@ class RAGService:
             return [], None
 
         valid_docs, embeddings = [], []
+        model = self.model
+        
         for doc in docs:
             q = str(doc.get("question") or doc.get("q") or doc.get("content") or "").strip()
             a = str(doc.get("answer") or doc.get("a") or "").strip()
             if not q or not a:
                 continue
-            doc = dict(doc)
-            doc["question"] = q
-            doc["answer"] = a
+            
+            doc_data = dict(doc)
+            doc_data["question"] = q
+            doc_data["answer"] = a
+            
             try:
-                emb = self.model.encode(q, normalize_embeddings=True)
+                # ── Optimization: Use pre-computed embedding ──
+                emb_list = doc.get("embedding_vector")
+                if isinstance(emb_list, list) and len(emb_list) > 0:
+                    emb = np.array(emb_list).astype("float32")
+                elif model:
+                    # Fallback to computing it now (slow)
+                    emb = model.encode(q, normalize_embeddings=True)
+                else:
+                    continue
+                    
                 embeddings.append(emb)
-                valid_docs.append(doc)
-            except Exception:
+                valid_docs.append(doc_data)
+            except Exception as e:
+                logger.warning(f"[RAG] Failed to extract embedding for doc: {e}")
                 pass
 
         if not embeddings:
+            logger.warning(f"[RAG] No valid embeddings found for {self.university_id}")
             return [], None
 
         try:
@@ -210,7 +225,7 @@ class RAGService:
             index = faiss.IndexFlatIP(matrix.shape[1])
             index.add(matrix)
             _knowledge_cache[self.university_id] = (valid_docs, index)
-            logger.info(f"[RAG] {self.university_id}: indexed {len(valid_docs)} entries")
+            logger.info(f"[RAG] {self.university_id}: indexed {len(valid_docs)} entries (Speed: Optimized)")
             return valid_docs, index
         except Exception as e:
             logger.error(f"[RAG] FAISS build failed: {e}")

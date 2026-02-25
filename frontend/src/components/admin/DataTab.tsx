@@ -48,21 +48,12 @@ export default function DataTab({ token }: { token: string }) {
         setLoading(true);
         try {
             const { universities } = await listAllUniversities(token);
-            const states: UniState[] = await Promise.all(
-                universities.map(async (uni) => {
-                    try {
-                        const filesData = await getDataFiles(uni.slug, token);
-                        return {
-                            uni: uni as any,
-                            files: filesData.uploaded_files || [],
-                            total: filesData.total_knowledge_entries,
-                            expanded: false,
-                        };
-                    } catch {
-                        return { uni: uni as any, files: [], total: 0, expanded: false };
-                    }
-                })
-            );
+            const states: UniState[] = universities.map((uni: any) => ({
+                uni,
+                files: uni.uploaded_files || [],
+                total: (uni.uploaded_files || []).reduce((acc: number, f: any) => acc + (f.entries || 0), 0),
+                expanded: false,
+            }));
             setUnis(states);
         } catch (e) {
             console.error(e);

@@ -56,9 +56,18 @@ async def generate_response(
                 "max_tokens": 800
             }
             
+            # Ensure URL is clean
+            base_url = settings.PROLIXIS_BASE_URL.rstrip("/")
+            if "/v1" in base_url:
+                full_url = f"{base_url}/chat/completions"
+            else:
+                full_url = f"{base_url}/v1/chat/completions"
+
+            logger.info(f"[Prolixis] Calling: {full_url}")
+            
             # 5-second timeout to prevent extreme hangs before fallback
             response = requests.post(
-                f"{settings.PROLIXIS_BASE_URL}/v1/chat/completions", 
+                full_url, 
                 json=payload, 
                 headers=headers, 
                 timeout=5
@@ -92,7 +101,10 @@ async def generate_response(
         return response.text if response.text else "I apologize, but I couldn't generate a response."
 
     except Exception as e:
-        logger.error(f"[Gemini] Fallback failed completely: {e}")
+        logger.error(f"[Gemini] Fallback failed for {uni_name}: {e}")
+        # Log the full exception for Cloud Logging
+        import traceback
+        logger.error(traceback.format_exc())
         return (
             f"I'm sorry, I'm Arvix AI and I'm having trouble connecting to my knowledge base for {uni_name}. "
             "This might be a temporary connection issue. Please try again in a moment or contact the university admissions office directly."

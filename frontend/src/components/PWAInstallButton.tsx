@@ -97,7 +97,7 @@ export default function PWAInstallButton({ variant = "navbar" }: { variant?: "na
                         textAlign: "left"
                     }}>
                         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                            To install <b>Izra</b>: <br />
+                            To install <b>Arvix AI</b>: <br />
                             1. Tap the <b>Share</b> button <svg style={{ display: "inline", verticalAlign: "middle" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg><br />
                             2. Select <b>"Add to Home Screen"</b>
                         </p>
@@ -143,7 +143,7 @@ export default function PWAInstallButton({ variant = "navbar" }: { variant?: "na
                     <polyline points="7 10 12 15 17 10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                {installing ? "Downloading App..." : "Download Izra App"}
+                {installing ? "Downloading App..." : "Download Arvix AI App"}
             </button>
         );
     }
@@ -153,7 +153,7 @@ export default function PWAInstallButton({ variant = "navbar" }: { variant?: "na
             id="pwa-install-btn"
             onClick={handleInstall}
             disabled={installing}
-            title="Install Izra as an App"
+            title="Install Arvix AI as an App"
             style={{
                 display: "flex",
                 alignItems: "center",

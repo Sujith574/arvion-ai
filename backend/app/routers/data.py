@@ -74,12 +74,10 @@ async def upload_data_file(
         loop = asyncio.get_event_loop()
 
         def _run_ingest():
-            with open(tmp_path, "rb") as f:
-                content = f.read()
             return ingest_file(
                 university_id=university_slug,
                 filename=file.filename or "upload",
-                content=content,
+                file_path=tmp_path,
                 replace_existing=replace_existing,
             )
 

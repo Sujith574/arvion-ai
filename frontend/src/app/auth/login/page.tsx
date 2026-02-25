@@ -157,7 +157,7 @@ export default function LoginPage() {
                     </form>
 
                     <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-                        New to Izra?{" "}
+                        New to Arvix AI?{" "}
                         <Link href="/auth/signup" style={{ color: "var(--brand-600)", fontWeight: 700, textDecoration: "none" }}>
                             Create account
                         </Link>
