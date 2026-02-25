@@ -231,6 +231,18 @@ export async function getQueryLogs(
     return handleResponse(res);
 }
 
+export async function getChatFeedback(
+    universitySlug: string,
+    token: string,
+    limit = 50
+): Promise<{ feedback: any[]; total: number }> {
+    const res = await fetch(
+        `${API_BASE}/api/admin/feedback/${universitySlug}?limit=${limit}`,
+        { headers: getHeaders(token) }
+    );
+    return handleResponse(res);
+}
+
 // ── Knowledge API ──────────────────────────────────────────────
 export async function getKnowledgeEntries(universitySlug: string, token: string) {
     const res = await fetch(`${API_BASE}/api/knowledge/${universitySlug}`, {

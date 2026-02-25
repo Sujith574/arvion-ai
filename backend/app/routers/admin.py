@@ -70,6 +70,41 @@ async def query_logs(university_slug: str, limit: int = 50, _=Depends(require_ad
     return {"logs": logs, "total": len(logs)}
 
 
+@router.get("/feedback/{university_slug}")
+async def admin_feedback(university_slug: str, limit: int = 50, _=Depends(require_admin)):
+    """Return recent user feedback for a university."""
+    db = get_db()
+    
+    # Fetch feedback
+    feedback_docs = (
+        db.collection("query_feedback")
+        .where("university_id", "==", university_slug)
+        .order_by("timestamp", direction="DESCENDING")
+        .limit(limit)
+        .stream()
+    )
+    
+    results = []
+    for f_doc in feedback_docs:
+        f_data = f_doc.to_dict()
+        query_id = f_data.get("query_id")
+        
+        # Link back to the original query/response log
+        log_data = {}
+        if query_id:
+            log_doc = db.collection("query_logs").document(query_id).get()
+            if log_doc.exists:
+                log_data = log_doc.to_dict()
+        
+        results.append({
+            "id": f_doc.id,
+            **f_data,
+            "query_details": log_data
+        })
+        
+    return {"feedback": results, "total": len(results)}
+
+
 @router.get("/university-requests")
 async def get_university_requests(_=Depends(require_admin)):
     """Super admin: view all pending university addition requests."""

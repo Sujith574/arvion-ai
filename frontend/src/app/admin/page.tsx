@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import KnowledgeTab from "@/components/admin/KnowledgeTab";
 import UniversityTab from "@/components/admin/UniversityTab";
 import DataTab from "@/components/admin/DataTab";
+import FeedbackTab from "@/components/admin/FeedbackTab";
 
 const UNI_SLUG = "lpu"; // In production, derive from admin's university_id
 
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "data">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback">("overview");
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -151,7 +152,7 @@ export default function AdminDashboard() {
                     {/* ── Tabs ─────────────────────────────────── */}
                     <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "1.5rem", paddingBottom: "2px" }}>
                         <div style={{ display: "flex", gap: "0.25rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "max-content", minWidth: "100%" }}>
-                            {(["overview", "logs", "knowledge", "university", "data"] as const).map((tab) => (
+                            {(["overview", "logs", "knowledge", "university", "data", "feedback"] as const).map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -167,6 +168,7 @@ export default function AdminDashboard() {
                                     {tab === "knowledge" && "🧠 Knowledge"}
                                     {tab === "university" && "🏫 Approvals"}
                                     {tab === "data" && "📁 Data Files"}
+                                    {tab === "feedback" && "👍 Feedback"}
                                 </button>
                             ))}
                         </div>
@@ -309,6 +311,9 @@ export default function AdminDashboard() {
 
                     {/* ── Data File Management ───────────────────── */}
                     {activeTab === "data" && <DataTab token={token!} />}
+
+                    {/* ── Feedback ────────────────────────────────── */}
+                    {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={UNI_SLUG} />}
                 </div>
             </main>
 
