@@ -1,4 +1,4 @@
-import requests
+import httpx
 import logging
 from google import genai
 from google.genai import types
@@ -39,7 +39,7 @@ async def generate_response(
     if not system_instruction:
         system_instruction = SYSTEM_INSTRUCTION.format(university_id=uni_name, context=context[:2000])
 
-    # 1. Primary Attempt: Prolixis API
+    # 1. Primary Attempt: Prolixis API (async — non-blocking)
     if settings.PROLIXIS_API_KEY:
         try:
             headers = {
@@ -55,8 +55,7 @@ async def generate_response(
                 "temperature": 0.2,
                 "max_tokens": 800
             }
-            
-            # Ensure URL is clean
+
             base_url = settings.PROLIXIS_BASE_URL.rstrip("/")
             if "/v1" in base_url:
                 full_url = f"{base_url}/chat/completions"
@@ -64,18 +63,13 @@ async def generate_response(
                 full_url = f"{base_url}/v1/chat/completions"
 
             logger.info(f"[Prolixis] Calling: {full_url}")
-            
-            # 5-second timeout to prevent extreme hangs before fallback
-            response = requests.post(
-                full_url, 
-                json=payload, 
-                headers=headers, 
-                timeout=5
-            )
-            
+
+            async with httpx.AsyncClient(timeout=3.0) as http:
+                response = await http.post(full_url, json=payload, headers=headers)
+
             if response.status_code == 200:
                 data = response.json()
-                return data['choices'][0]['message']['content']
+                return data["choices"][0]["message"]["content"]
             else:
                 logger.warning(f"[Prolixis] API returned {response.status_code}, falling back to Gemini.")
         except Exception as e:
@@ -101,11 +95,7 @@ async def generate_response(
         return response.text if response.text else "I apologize, but I couldn't generate a response."
 
     except Exception as e:
-        logger.error(f"[Gemini] Fallback failed for {uni_name}: {e}")
-        # Log the full exception for Cloud Logging
         import traceback
-        logger.error(traceback.format_exc())
-        return (
-            f"I'm sorry, I'm Arvix AI and I'm having trouble connecting to my knowledge base for {uni_name}. "
-            "This might be a temporary connection issue. Please try again in a moment or contact the university admissions office directly."
-        )
+        logger.error(f"[Gemini] Fallback failed for {uni_name}: {e}\n{traceback.format_exc()}")
+        # Return empty string — callers in rag_service use proper university-focused fallbacks
+        return ""

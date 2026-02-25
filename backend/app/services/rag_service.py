@@ -246,32 +246,34 @@ class RAGService:
         except Exception as e:
             logger.exception(f"[RAG] Unhandled error: {e}")
             # Emergency fallback
-            try:
-                answer = await self._call_ai(query)
-                if answer:
-                    return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["proprietary_ai"], "used_fallback": True}
-            except Exception:
-                pass
-            return {"answer": "I'm the Arvix AI Assistant. I couldn't find a specific answer. Please contact admissions.", "category": "general", "confidence": 0.0, "sources": [], "used_fallback": True}
+            # Controlled university-focused fallback
+            uni = self.university_id.upper()
+            return {
+                "answer": f"I couldn't find specific information about that in the official {uni} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships.",
+                "category": "general",
+                "confidence": 0.0,
+                "sources": [],
+                "used_fallback": True
+            }
 
 
     async def _query_impl(self, query: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
 
         # ── Step 1: Detect greeting / small-talk ──────────────────────────
         if _is_conversational(query):
-            answer = await self._call_ai(query, is_greeting=True)
-            if not answer:
-                answer = (
-                    f"Hello! 👋 I'm Arvix AI, the assistant for {self.university_id.upper()} university. "
-                    f"I'm here to help you with information about admissions, courses, fees, "
-                    f"hostel, placements, campus life, and much more. What would you like to know?"
-                )
+            uni = self.university_id.upper()
+            answer = (
+                f"Hello! 👋 I'm your {uni} AI Assistant. "
+                f"I'm here to help you with information about admissions, hostel, fees, exams, "
+                f"scholarships, or any other information related to this university. "
+                "What would you like to know?"
+            )
 
             return {
                 "answer": answer,
                 "category": "general",
                 "confidence": 1.0,
-                "sources": ["conversational"],
+                "sources": ["deterministic_greeting"],
                 "used_fallback": False,
             }
 
@@ -303,14 +305,13 @@ class RAGService:
         docs, index = await self._load_index()
 
         if not docs or index is None:
-            # No data yet → full AI response
-            answer = await self._call_ai(query)
-
+            # No data yet → return controlled fallback instead of calling AI blindly
+            uni = self.university_id.upper()
             return {
-                "answer": answer,
+                "answer": f"I'm your {uni} AI Assistant. I don't have enough official data yet to answer that specific question. Please ask about admissions, courses, fees, or campus life.",
                 "category": "general",
                 "confidence": 0.0,
-                "sources": ["gemini_ai"],
+                "sources": ["no_kb_data"],
                 "used_fallback": True,
             }
 
@@ -371,18 +372,21 @@ class RAGService:
         # ── Step 6: Always send context to AI for best answer ─────────
         # AI synthesizes across ALL top results for accurate, complete answers
         answer = await self._call_ai(query, context=kb_context)
+        
         if not answer:
-            # AI failed → use best direct KB match
-            answer = top_doc.get("answer") or "I'm the Arvix AI Assistant. I couldn't find a specific answer. Please contact admissions."
-
-
+            # AI failed or low confidence → use best direct KB match or controlled fallback
+            if top_score > 0.45:
+                answer = top_doc.get("answer")
+                logger.info(f"[RAG] AI failed, falling back to top KB match (score={top_score:.3f})")
+            else:
+                uni = self.university_id.upper()
+                answer = f"I couldn't find specific information about that in the official {uni} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships."
+                logger.info(f"[RAG] AI failed and low confidence ({top_score:.3f}), using fallback.")
 
         return {
             "answer": answer,
             "category": top_doc.get("category", "general") if context_docs else "general",
             "confidence": top_score,
-            "sources": [d.get("source", "knowledge_base") for d in context_docs[:2]] if context_docs else ["gemini_ai"],
+            "sources": [d.get("source", "knowledge_base") for d in context_docs[:2]] if context_docs else ["llm_fallback"],
             "used_fallback": top_score < confidence_threshold,
         }
-
-
