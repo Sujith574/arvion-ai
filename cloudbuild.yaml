@@ -41,7 +41,7 @@ steps:
       - '--cpu'
       - '2'
       - '--update-env-vars'
-      - 'FIREBASE_PROJECT_ID=arvion-241094,FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app,PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
+      - 'JWT_SECRET_KEY=arvion-super-secret-jwt-key-change-in-production-2026,FIREBASE_PROJECT_ID=arvion-241094,FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app,PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
     id: 'Deploy Backend'
 
 # ==============================================================================
