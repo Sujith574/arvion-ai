@@ -111,9 +111,9 @@ export default function AdminDashboard() {
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: "4rem", minHeight: "100vh", background: "var(--bg-subtle)", overflowX: "hidden" }}>
+            <main className="admin-page-main" style={{ paddingTop: "4rem", minHeight: "100vh", background: "var(--bg-subtle)" }}>
                 {/* ── Header ─────────────────────────────────── */}
-                <div style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%)", padding: "2.5rem 1.5rem", color: "white" }}>
+                <div style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%)", padding: "2rem max(1rem, 4vw)", color: "white" }}>
                     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
                             <div>
@@ -129,9 +129,9 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.25rem 1rem" }}>
+                <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.25rem max(0.75rem, 3vw)" }}>
                     {/* ── Stats Grid ────────────────────────────── */}
-                    <div className="admin-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+                    <div className="admin-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "0.875rem", marginBottom: "1.5rem" }}>
                         {statCards.map((card, i) => (
                             <div key={i} className="card" style={{ padding: "1.5rem" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>

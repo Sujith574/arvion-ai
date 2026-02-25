@@ -217,17 +217,17 @@ export default function DataTab({ token }: { token: string }) {
                 unis.map(({ uni, files, total, expanded }) => (
                     <div key={uni.slug} className="card" style={{ padding: 0, overflow: "hidden" }}>
                         {/* Card header */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.25rem 1.5rem", cursor: "pointer", background: "var(--surface)" }} onClick={() => toggleExpand(uni.slug)}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "1.125rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem", gap: "0.75rem", cursor: "pointer", background: "var(--surface)", flexWrap: "wrap" }} onClick={() => toggleExpand(uni.slug)}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.875rem", flex: 1, minWidth: 0 }}>
+                                <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "1.125rem", flexShrink: 0 }}>
                                     {uni.name?.charAt(0) || "?"}
                                 </div>
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-primary)" }}>{uni.name}</div>
-                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>/{uni.slug} · {total} knowledge entries · {files.length} files uploaded</div>
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{uni.name}</div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>/{uni.slug} · {total} entries · {files.length} files</div>
                                 </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                            <div className="admin-card-header-meta">
                                 <span style={{ padding: "0.2rem 0.625rem", borderRadius: "100px", fontSize: "0.6875rem", fontWeight: 700, background: total > 0 ? "#f0fdf4" : "#fef3c7", color: total > 0 ? "#16a34a" : "#b45309", border: `1px solid ${total > 0 ? "#bbf7d0" : "#fde68a"}` }}>
                                     {total > 0 ? `${total} entries` : "No data"}
                                 </span>

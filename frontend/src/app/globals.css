@@ -182,11 +182,50 @@ h6 {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
+  /* Prevent card overflow */
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .card:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-1px);
+}
+
+/* ── Admin Dashboard ─────────────────────────────────────────── */
+
+/* Prevents horizontal scroll on admin pages */
+.admin-page-main {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Responsive two-column grid: 1 col mobile → 2 cols on tablet+ */
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .admin-two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Flex header meta (badge + chevron) wraps gracefully on small screens */
+.admin-card-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn-primary {
@@ -582,6 +621,11 @@ h6 {
 
   .admin-table-wrap table {
     min-width: 600px;
+  }
+
+  /* Admin two-col: force single column on mobile */
+  .admin-two-col {
+    grid-template-columns: 1fr !important;
   }
 
   /* Typography scaling */

@@ -57,7 +57,7 @@ export default function KnowledgeTab({ token, universitySlug }: { token: string;
     };
 
     return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+        <div className="admin-two-col">
             {/* Form side */}
             <div className="card" style={{ padding: "1.75rem", alignSelf: "start" }}>
                 <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>Add Knowledge Entry</h2>

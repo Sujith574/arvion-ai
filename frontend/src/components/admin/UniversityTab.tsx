@@ -57,7 +57,7 @@ export default function UniversityTab({ token }: { token: string }) {
     };
 
     return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+        <div className="admin-two-col">
 
             {/* ── Pending Requests ────────────────────── */}
             <div className="card" style={{ padding: "2rem", alignSelf: "start" }}>
@@ -76,11 +76,11 @@ export default function UniversityTab({ token }: { token: string }) {
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                         {requests.map(req => (
                             <div key={req.id} style={{ padding: "1rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-                                    <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>{req.university_name}</h3>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem", gap: "0.75rem", flexWrap: "wrap" }}>
+                                    <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", flex: 1, minWidth: 0, wordBreak: "break-word" }}>{req.university_name}</h3>
                                     <button
                                         onClick={() => handleApprove(req.id, req.university_name)}
-                                        style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", border: "none", background: "var(--brand-600)", color: "white", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}
+                                        style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", border: "none", background: "var(--brand-600)", color: "white", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
                                     >
                                         Approve &amp; Publish
                                     </button>
