@@ -85,6 +85,22 @@ async def get_knowledge_base(university_id: str) -> list[dict]:
     return [{"id": d.id, **d.to_dict()} for d in docs]
 
 
-async def log_query(log_data: dict):
+async def log_query(log_data: dict) -> str:
     db = get_db()
-    db.collection("query_logs").add(log_data)
+    # Add timestamp if not present
+    if "timestamp" not in log_data:
+        import datetime
+        log_data["timestamp"] = datetime.datetime.utcnow().isoformat()
+        
+    _, doc_ref = db.collection("query_logs").add(log_data)
+    return doc_ref.id
+
+
+async def store_feedback(feedback_data: dict) -> str:
+    db = get_db()
+    if "timestamp" not in feedback_data:
+        import datetime
+        feedback_data["timestamp"] = datetime.datetime.utcnow().isoformat()
+        
+    _, doc_ref = db.collection("query_feedback").add(feedback_data)
+    return doc_ref.id

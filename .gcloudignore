@@ -1,11 +1,47 @@
+# Exclude common build/dependency artifacts to speed up Cloud Build upload
+
 .git
+.gitignore
+.gcloudignore
+
+# Node.js
+node_modules/
 **/node_modules/
-**/venv/
-**/__pycache__/
+frontend/node_modules/
 frontend/.next/
+**/.next/
+
+# Python
+venv/
+**/venv/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.toast
+.lucid
+.cache/
+.pytest_cache/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Backend specific large folders
+backend/venv/
 backend/frontend/
-*.log
+
+# Local envs
+.env
 .env.local
 frontend/.env.local
-.DS_Store
-
+backend/.env

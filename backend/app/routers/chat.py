@@ -3,9 +3,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from pydantic import BaseModel, field_validator
 from app.services.rag_service import RAGService
-from app.services.firebase import get_university, log_query
+from app.services.firebase import get_university, log_query, store_feedback
 from app.middleware.security import sanitize_input
-from datetime import datetime
 import uuid
 import re
 
@@ -38,11 +37,17 @@ class ChatRequest(BaseModel):
         return sanitize_input(v)
 
 
+class FeedbackRequest(BaseModel):
+    query_id: str
+    rating: int  # 1 for thumbs up, -1 for thumbs down
+    university_slug: str
+    comment: str | None = None
+
+
 @router.post("/message")
 @limiter.limit("20/minute")
 async def chat_message(request: Request, body: ChatRequest):
     university = await get_university(body.university_slug)
-    # `active` field is boolean True in our Firestore schema
     if not university or not university.get("active", False):
         raise HTTPException(404, "University not found or inactive")
 
@@ -52,10 +57,10 @@ async def chat_message(request: Request, body: ChatRequest):
         university_name=university.get("name", ""),
         confidence_threshold=university.get("confidence_threshold", 0.75),
         category_filter=body.category_filter,
-        user_id=body.user_id or "anonymous",   # Prolixis memory namespace
+        user_id=body.user_id or "anonymous",
     )
 
-    await log_query({
+    query_id = await log_query({
         "session_id": body.session_id or str(uuid.uuid4()),
         "university_id": body.university_slug,
         "user_id": body.user_id,
@@ -64,13 +69,25 @@ async def chat_message(request: Request, body: ChatRequest):
         "category": result.get("category"),
         "confidence_score": result["confidence"],
         "used_fallback_llm": result.get("used_fallback", False),
-        "timestamp": datetime.utcnow().isoformat(),
     })
 
     return {
+        "query_id": query_id,
         "answer": result["answer"],
         "category": result.get("category"),
         "confidence": result["confidence"],
         "sources": result.get("sources", []),
         "used_fallback": result.get("used_fallback", False),
     }
+
+
+@router.post("/feedback")
+async def chat_feedback(body: FeedbackRequest):
+    """Store user feedback (thumbs up/down) for a specific query."""
+    await store_feedback({
+        "query_id": body.query_id,
+        "rating": body.rating,
+        "comment": body.comment,
+        "university_id": body.university_slug,
+    })
+    return {"message": "Feedback received"}

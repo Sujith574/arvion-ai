@@ -110,6 +110,7 @@ export default function ChatPage() {
                 confidence: res.confidence,
                 sources: res.sources,
                 used_fallback: res.used_fallback,
+                query_id: res.query_id,
                 timestamp: new Date().toISOString(),
             } as ChatMessage);
         } catch (err: any) {

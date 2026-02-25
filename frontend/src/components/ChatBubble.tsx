@@ -1,6 +1,9 @@
 "use client";
 
-import { type ChatMessage } from "@/lib/api";
+import { useState } from "react";
+import { type ChatMessage, sendChatFeedback } from "@/lib/api";
+import { useStore } from "@/store/useStore";
+import { useParams } from "next/navigation";
 
 interface ChatBubbleProps {
     message: ChatMessage;
@@ -25,9 +28,48 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
     general: { bg: "#f9fafb", text: "#374151" },
 };
 
+const FeedbackIcon = ({ type, active }: { type: "up" | "down", active?: boolean }) => {
+    if (type === "up") {
+        return (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
+            </svg>
+        );
+    }
+    return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />
+        </svg>
+    );
+};
+
 export default function ChatBubble({ message, isNew }: ChatBubbleProps) {
+    const params = useParams();
+    const slug = params?.slug as string;
+    const { token } = useStore();
+    const [rating, setRating] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const isUser = message.role === "user";
     const catColors = CATEGORY_COLORS[message.category || "general"];
+
+    const handleFeedback = async (val: number) => {
+        if (rating !== null || isSubmitting || !message.query_id) return;
+
+        setIsSubmitting(true);
+        try {
+            await sendChatFeedback({
+                query_id: message.query_id,
+                rating: val,
+                university_slug: slug,
+            }, token || undefined);
+            setRating(val);
+        } catch (err) {
+            console.error("[Feedback] Error:", err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const time = new Date(message.timestamp).toLocaleTimeString([], {
         hour: "2-digit",
@@ -142,6 +184,42 @@ export default function ChatBubble({ message, isNew }: ChatBubbleProps) {
                         >
                             AI enhanced
                         </span>
+                    )}
+
+                    {/* Feedback Buttons */}
+                    {!isUser && message.query_id && (
+                        <div style={{ display: "flex", gap: "0.25rem", marginLeft: "auto" }}>
+                            <button
+                                onClick={() => handleFeedback(1)}
+                                className="btn-ghost"
+                                style={{
+                                    padding: "4px",
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "4px",
+                                    color: rating === 1 ? "#16a34a" : "var(--text-muted)",
+                                    opacity: rating !== null && rating !== 1 ? 0.3 : 1
+                                }}
+                                disabled={rating !== null || isSubmitting}
+                            >
+                                <FeedbackIcon type="up" active={rating === 1} />
+                            </button>
+                            <button
+                                onClick={() => handleFeedback(-1)}
+                                className="btn-ghost"
+                                style={{
+                                    padding: "4px",
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "4px",
+                                    color: rating === -1 ? "#dc2626" : "var(--text-muted)",
+                                    opacity: rating !== null && rating !== -1 ? 0.3 : 1
+                                }}
+                                disabled={rating !== null || isSubmitting}
+                            >
+                                <FeedbackIcon type="down" active={rating === -1} />
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

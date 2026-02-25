@@ -21,6 +21,7 @@ export interface ChatMessage {
     sources?: string[];
     used_fallback?: boolean;
     timestamp: string;
+    query_id?: string;
 }
 
 export interface University {
@@ -164,6 +165,7 @@ export interface ChatResponse {
     confidence: number;
     sources: string[];
     used_fallback: boolean;
+    query_id: string;
 }
 
 export async function sendChatMessage(
@@ -176,6 +178,20 @@ export async function sendChatMessage(
         body: JSON.stringify(data),
     });
     return handleResponse<ChatResponse>(res);
+}
+
+export async function sendChatFeedback(data: {
+    query_id: string;
+    rating: number;
+    university_slug: string;
+    comment?: string;
+}, token?: string): Promise<{ message: string }> {
+    const res = await fetch(`${API_BASE}/api/chat/feedback`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse(res);
 }
 
 // ── Emergency API ──────────────────────────────────────────────
@@ -242,8 +258,6 @@ export async function deleteKnowledgeEntry(entryId: string, universitySlug: stri
 
 // ── Admin Super API ────────────────────────────────────────────
 export async function addUniversity(data: any, token: string) {
-    // We use a general POST/PUT to an admin endpoint for creating universities
-    // Wait, the backend doesn't have a direct add-university endpoint. I will add one.
     const res = await fetch(`${API_BASE}/api/admin/universities`, {
         method: "POST",
         headers: getHeaders(token),
@@ -296,7 +310,7 @@ export async function uploadDataFile(
     formData.append("replace_existing", replaceExisting ? "true" : "false");
     const res = await fetch(`${API_BASE}/api/data/upload/${universitySlug}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }, // No Content-Type — let browser set multipart boundary
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
     });
     return handleResponse<{ message: string; created: number; skipped: number; filename: string }>(res);
@@ -318,7 +332,6 @@ export async function deleteAllEntries(universitySlug: string, token: string) {
 }
 
 export async function listAllUniversities(token: string) {
-    // Admin can see ALL universities (not just active ones)
     const res = await fetch(`${API_BASE}/api/universities/`, {
         headers: getHeaders(token),
     });

@@ -1,41 +1,34 @@
 """
-RAG Service — Retrieval-Augmented Generation (Production-Ready)
-===============================================================
-Key improvements:
-- Greeting/conversational queries handled with Gemini directly (no FAISS confusion)
-- Prolixis memory is truly non-blocking (runs in thread, max 2s timeout)
-- Per-university FAISS index fully isolated (no data mixing)
-- Confidence threshold lowered — only high-confidence KB hits bypass Gemini
-- Multi-doc context: top 5 KB results sent to Gemini for better answers
-- All dict accesses are safe (.get() everywhere)
+RAG Service — Retrieval-Augmented Generation (Architected for Scale)
+====================================================================
+This service orchestrates the RAG flow:
+1. Memory retrieval (Prolixis)
+2. Greeting/Conversational detection
+3. Identity/Meta query detection
+4. Hybrid Vector Search (via BaseVectorStore abstraction)
+5. AI Synthesis (using Master System Prompt)
+6. Interaction logging & Memory storage
 """
 
 import logging
 import asyncio
 import re
+from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+from app.config import get_settings
 from app.services.llm_service import generate_response
 from app.services.prolixis_service import search_memories, store_memory, build_memory_context
-
-try:
-    import numpy as np
-    import faiss
-    import os
-    from sentence_transformers import SentenceTransformer
-    FAISS_AVAILABLE = True
-except ImportError:
-    FAISS_AVAILABLE = False
+from app.services.firebase import get_knowledge_base
+from app.services.vector_store import get_vector_store
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-if settings.GEMINI_API_KEY:
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
-else:
-    client = None
-
-# Thread pool for blocking Prolixis / file I/O calls
+# Thread pool for non-blocking side effects
 _executor = ThreadPoolExecutor(max_workers=4)
-
 
 # ── Conversational / Greeting detection ───────────────────────────────────
 _GREETING_RE = re.compile(
@@ -52,7 +45,6 @@ _SMALL_TALK_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Identity / meta questions — must be caught BEFORE FAISS to prevent wrong KB matches
 _IDENTITY_RE = re.compile(
     r"("
     r"how\s*(are|were|was|did|do)\s*(you|u)\s*(train(ed|ing)?|made|built|creat|develop|work|function|learn|know|operat)"
@@ -69,8 +61,6 @@ _IDENTITY_RE = re.compile(
     re.IGNORECASE,
 )
 
-
-# Keywords that signal an informational query — never treat these as conversational
 _INFO_KEYWORDS_RE = re.compile(
     r"\b(address|location|fee|fees|hostel|admission|apply|course|placement|salary|"
     r"campus|contact|phone|email|website|rank|rating|exam|scholarship|seat|intake|"
@@ -81,132 +71,68 @@ _INFO_KEYWORDS_RE = re.compile(
     re.IGNORECASE,
 )
 
-
 def _is_conversational(text: str) -> bool:
     t = text.strip()
-    # If the text contains informational keywords, it is NOT conversational no matter how short
     if _INFO_KEYWORDS_RE.search(t):
         return False
     return bool(_GREETING_RE.match(t) or _SMALL_TALK_RE.match(t))
 
-
 def _is_identity_query(text: str) -> bool:
     return bool(_IDENTITY_RE.search(text.strip()))
-
 
 # ── Embedding model (shared, loaded once) ─────────────────────────────────
 @lru_cache(maxsize=1)
 def get_embedding_model():
-    if not FAISS_AVAILABLE:
-        return None
     try:
-        # Strictly use local files if possible to avoid 429 rate limits
         model_path = settings.EMBEDDING_MODEL
-        # Check if it looks like a local path
+        import os
         is_local = os.path.isdir(model_path) or model_path.startswith("/") or model_path.startswith("./")
-        
-        logger.info(f"[RAG] Loading embedding model from: {model_path} (local={is_local})")
-        return SentenceTransformer(
-            model_path, 
-            local_files_only=is_local
-        )
+        logger.info(f"[RAG] Loading embedding model: {model_path}")
+        return SentenceTransformer(model_path, local_files_only=is_local)
     except Exception as e:
         logger.error(f"[RAG] SentenceTransformer load failed: {e}")
         return None
 
-
-# ── Per-university FAISS cache ────────────────────────────────────────────
-_knowledge_cache: dict = {}
-
-
-def invalidate_cache(university_id: str):
-    _knowledge_cache.pop(university_id, None)
-    logger.info(f"[RAG] Cache cleared for {university_id}")
-
+async def get_embedding(text: str) -> np.ndarray:
+    model = get_embedding_model()
+    if model:
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(_executor, lambda: model.encode(text, normalize_embeddings=True))
+    return np.zeros(768)
 
 class RAGService:
     def __init__(self, university_id: str):
         self.university_id = university_id
-        self.model = get_embedding_model()
+        self.vector_store = get_vector_store(university_id)
 
-    async def _call_ai(self, query: str, university_name: str = "", context: str = "", memory_results: str = "", is_greeting: bool = False) -> str:
-        uni_name = university_name or self.university_id.upper()
-        
-        # Note: If is_greeting is True, we currently use a deterministic response in _query_impl, 
-        # but here we preserve the AI call capability using the master prompt structure.
-        return await generate_response(
-            query=query, 
-            university_id=self.university_id,
-            university_name=uni_name,
-            context=context,
-            memory_results=memory_results
-        )
-
-
-    # ── FAISS index (per-university, isolated) ─────────────────────────────
-    async def _load_index(self) -> tuple:
-        if not FAISS_AVAILABLE or self.model is None:
-            return [], None
-        if self.university_id in _knowledge_cache:
-            return _knowledge_cache[self.university_id]
-
+    async def load_kb(self) -> bool:
+        """Isolated per-university KB loading."""
         try:
-            docs = await get_knowledge_base(self.university_id)
+            kb_data = await get_knowledge_base(self.university_id)
+            if not kb_data:
+                return False
+
+            self.vector_store.clear()
+            docs, vectors = [], []
+            for item in kb_data:
+                v = item.get("embedding_vector")
+                if v and len(v) > 0:
+                    docs.append({
+                        "question": item.get("question"),
+                        "answer": item.get("answer"),
+                        "category": item.get("category"),
+                        "source": item.get("source"),
+                    })
+                    vectors.append(v)
+            
+            if vectors:
+                self.vector_store.add_documents(docs, np.array(vectors).astype("float32"))
+                return True
+            return False
         except Exception as e:
             logger.error(f"[RAG] KB load failed for {self.university_id}: {e}")
-            return [], None
+            return False
 
-        if not docs:
-            return [], None
-
-        valid_docs, embeddings = [], []
-        model = self.model
-        
-        for doc in docs:
-            q = str(doc.get("question") or doc.get("q") or doc.get("content") or "").strip()
-            a = str(doc.get("answer") or doc.get("a") or "").strip()
-            if not q or not a:
-                continue
-            
-            doc_data = dict(doc)
-            doc_data["question"] = q
-            doc_data["answer"] = a
-            
-            try:
-                # ── Optimization: Use pre-computed embedding ──
-                emb_list = doc.get("embedding_vector")
-                if isinstance(emb_list, list) and len(emb_list) > 0:
-                    emb = np.array(emb_list).astype("float32")
-                elif model:
-                    # Fallback to computing it now (slow)
-                    emb = model.encode(q, normalize_embeddings=True)
-                else:
-                    continue
-                    
-                embeddings.append(emb)
-                valid_docs.append(doc_data)
-            except Exception as e:
-                logger.warning(f"[RAG] Failed to extract embedding for doc: {e}")
-                pass
-
-        if not embeddings:
-            logger.warning(f"[RAG] No valid embeddings found for {self.university_id}")
-            return [], None
-
-        try:
-            matrix = np.vstack(embeddings).astype("float32")
-            index = faiss.IndexFlatIP(matrix.shape[1])
-            index.add(matrix)
-            _knowledge_cache[self.university_id] = (valid_docs, index)
-            logger.info(f"[RAG] {self.university_id}: indexed {len(valid_docs)} entries (Speed: Optimized)")
-            return valid_docs, index
-        except Exception as e:
-            logger.error(f"[RAG] FAISS build failed: {e}")
-            return [], None
-
-
-
-    # ── Main query ─────────────────────────────────────────────────────────
     async def query(
         self,
         query: str,
@@ -219,21 +145,19 @@ class RAGService:
             return await self._query_impl(query, university_name, confidence_threshold, category_filter, user_id)
         except Exception as e:
             logger.exception(f"[RAG] Unhandled error: {e}")
-            # Emergency fallback
             uni = university_name or self.university_id.upper()
             return {
-                "answer": f"I couldn't find specific information about that in the official {uni} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships.",
+                "answer": f"I couldn't find specific information about that in the official {uni} data. Please contact the university directly.",
                 "category": "general",
                 "confidence": 0.0,
                 "sources": [],
                 "used_fallback": True
             }
 
-
     async def _query_impl(self, query: str, university_name: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
         uni_name = university_name or self.university_id.upper()
 
-        # ── Step 0: Fetch Memory Context (Prolixis) ───────────────────────
+        # ── Step 0: Memory Context ──────────────────────────────────
         memory_results = ""
         if user_id and user_id != "anonymous":
             try:
@@ -242,137 +166,74 @@ class RAGService:
             except Exception as e:
                 logger.warning(f"[RAG] Memory search failed: {e}")
 
-        # ── Step 1: Detect greeting / small-talk ──────────────────────────
+        # ── Step 1: Greeting / Identity ─────────────────────────────
         if _is_conversational(query):
-            answer = (
-                f"Hello! 👋 I'm your {uni_name} AI Assistant. "
-                "I'm here to help you with information about admissions, hostel, fees, exams, "
-                "scholarships, or any other information related to this university. "
-                "What would you like to know?"
-            )
-
             return {
-                "answer": answer,
+                "answer": f"Hello! 👋 I'm your {uni_name} AI Assistant. How can I help you today?",
                 "category": "general",
                 "confidence": 1.0,
                 "sources": ["deterministic_greeting"],
                 "used_fallback": False,
             }
 
-        # ── Step 1b: Detect identity / meta questions — bypass FAISS ──────
         if _is_identity_query(query):
-            try:
-                answer = await self._call_ai(query, university_name=uni_name, memory_results=memory_results)
-            except Exception:
-                answer = f"I'm Arvix AI, the official assistant for {uni_name}, here to help students, parents, and applicants with accurate information about admissions, courses, fees, and campus life."
+            answer = await generate_response(query, self.university_id, uni_name, memory_results=memory_results)
             return {
-                "answer": answer,
+                "answer": answer or f"I am Arvix AI, the official assistant for {uni_name}.",
                 "category": "general",
                 "confidence": 1.0,
                 "sources": ["identity"],
                 "used_fallback": False,
             }
 
-        # ── Step 2: Load isolated university KB ───────────────────────────
-        docs, index = await self._load_index()
+        # ── Step 2: Vector Search ────────────────────────────────────
+        # Auto-load KB if empty (First query optimization)
+        if hasattr(self.vector_store, 'documents') and not self.vector_store.documents:
+            await self.load_kb()
 
-        if not docs or index is None:
-            # No data yet → return controlled fallback instead of calling AI blindly
-            uni = self.university_id.upper()
-            return {
-                "answer": f"I'm your {uni} AI Assistant. I don't have enough official data yet to answer that specific question. Please ask about admissions, courses, fees, or campus life.",
-                "category": "general",
-                "confidence": 0.0,
-                "sources": ["no_kb_data"],
-                "used_fallback": True,
-            }
-
-        # ── Step 3: Category filter ────────────────────────────────────────
-        if category_filter:
-            filtered = [d for d in docs if d.get("category") == category_filter]
-            docs_to_use = filtered if filtered else docs
-        else:
-            docs_to_use = docs
-
-        # ── Step 4: Vector search — top 5 results ─────────────────────────
         try:
-            q_vec = np.array([self.model.encode(query, normalize_embeddings=True)], dtype="float32")
-
-            if docs_to_use is not docs:
-                # Rebuild mini-index for filtered subset
-                vecs = np.vstack([
-                    self.model.encode(d.get("question", ""), normalize_embeddings=True)
-                    for d in docs_to_use
-                ]).astype("float32")
-                search_index = faiss.IndexFlatIP(vecs.shape[1])
-                search_index.add(vecs)
-            else:
-                search_index = index
-
-            k = min(5, len(docs_to_use))
-            scores, indices = search_index.search(q_vec, k=k)
-            top_score = float(scores[0][0])
-            top_doc = docs_to_use[int(indices[0][0])]
-
+            query_emu = await get_embedding(query)
+            context_docs = self.vector_store.search(query_emu, top_k=5)
         except Exception as e:
             logger.error(f"[RAG] Search failed: {e}")
-            answer = await self._call_ai(query)
-            return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["proprietary_ai"], "used_fallback": True}
+            context_docs = []
 
-        logger.info(f"[RAG] {self.university_id} | score={top_score:.3f} | q={query[:60]}")
-
-        # ── Step 5: Build rich context from valid top docs ────────────────
+        # ── Step 3: Synthesis ────────────────────────────────────────
+        top_score = context_docs[0].get("similarity", 0.0) if context_docs else 0.0
         kb_context = ""
-        context_docs = []
-
-        # Only use context if the closest match is reasonably confident (e.g., > 0.45)
-        # This prevents injecting BTech fee data into "IIT vs LPU" queries.
         if top_score > 0.45:
-            context_docs = [
-                docs_to_use[int(i)]
-                for i in indices[0]
-                if 0 <= int(i) < len(docs_to_use)
-            ]
             kb_context = "\n\n".join([
-                f"Topic: {d.get('category', 'general')}\nQ: {d.get('question', '')}\nA: {d.get('answer', '')}"
+                f"Topic: {d.get('category')}\nQ: {d.get('question')}\nA: {d.get('answer')}"
                 for d in context_docs
-                if d.get("question") and d.get("answer")
             ])
-        else:
-            logger.info(f"[RAG] Low confidence ({top_score:.3f}). Stripping irrelevant KB context to prevent hallucination.")
 
-        # ── Step 6: Always send context to AI for best answer ─────────
-        # AI synthesizes across ALL top results for accurate, complete answers
-        answer = await self._call_ai(
-            query=query, 
-            university_name=uni_name, 
-            context=kb_context, 
+        answer = await generate_response(
+            query=query,
+            university_id=self.university_id,
+            university_name=uni_name,
+            context=kb_context,
             memory_results=memory_results
         )
-        
-        if not answer:
-            # AI failed or low confidence → use best direct KB match or controlled fallback
-            if top_score > 0.45:
-                answer = top_doc.get("answer")
-                logger.info(f"[RAG] AI failed, falling back to top KB match (score={top_score:.3f})")
-            else:
-                answer = f"I couldn't find specific information about that in the official {uni_name} data. You can contact the university directly or ask about admissions, fees, exams, hostel, or scholarships."
-                logger.info(f"[RAG] AI failed and low confidence ({top_score:.3f}), using fallback.")
 
-        # ── Step 7: Store Interaction in Memory (Prolixis) ────────────────
+        # ── Step 4: Fallback & Resilience ────────────────────────────
+        if not answer:
+            if top_score > 0.45:
+                answer = context_docs[0].get("answer")
+            else:
+                answer = f"I'm sorry, I couldn't find official information about that in the {uni_name} data."
+
+        # ── Step 5: Background Memory Store ──────────────────────────
         if user_id and user_id != "anonymous" and answer:
-            # run_in_executor to avoid blocking the response
             try:
                 _executor.submit(
-                    asyncio.run, store_memory(f"Q: {query} | A: {answer}", user_id, "chat", 3)
+                    lambda: asyncio.run(store_memory(f"Q: {query} | A: {answer}", user_id, "chat", 3))
                 )
-            except Exception as e:
-                logger.warning(f"[RAG] Memory storage background task failed: {e}")
+            except Exception: pass
 
         return {
             "answer": answer,
-            "category": top_doc.get("category", "general") if context_docs else "general",
+            "category": context_docs[0].get("category", "general") if context_docs else "general",
             "confidence": top_score,
-            "sources": [d.get("source", "knowledge_base") for d in context_docs[:2]] if context_docs else ["llm_fallback"],
+            "sources": list(set([d.get("source") for d in context_docs if d.get("source")]))[:2],
             "used_fallback": top_score < confidence_threshold,
         }
