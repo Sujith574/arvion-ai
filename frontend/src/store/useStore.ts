@@ -81,12 +81,19 @@ export const useStore = create<Store>()(
 
             logout: () =>
                 set({
+                    // Clear auth
                     token: null,
                     userId: null,
                     role: null,
                     displayName: null,
                     universityId: null,
                     isAuthenticated: false,
+                    // Clear chat session
+                    messages: [],
+                    sessionId: Math.random().toString(36).slice(2),
+                    categoryFilter: null,
+                    // Clear selected university
+                    selectedUniversity: null,
                 }),
 
             // ── Chat ─────────────────────────────────────────────────
