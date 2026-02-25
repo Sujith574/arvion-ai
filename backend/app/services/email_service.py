@@ -24,15 +24,17 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
         return False
 
     if purpose == "reset":
-        subject = "Arvix AI — Password Reset OTP"
+        subject = "Reset Your Password – Arvix AI"
         heading = "Reset Your Password"
-        body_text = "We received a request to reset your Arvix AI account password."
-        action_text = "Enter this OTP to set your new password:"
+        body_text = "We received a request to reset your password."
+        action_text = "Use the OTP below to reset your password."
+        footer_note = "If you did not request this, you can safely ignore this email."
     else:
-        subject = "Arvix AI — Verify Your Email"
-        heading = "Verify Your Email Address"
-        body_text = "Thanks for signing up for Arvix AI! Please verify your email address."
-        action_text = "Enter this OTP to complete your registration:"
+        subject = "Verify Your Email – Arvix AI"
+        heading = "Verify Your Email"
+        body_text = "Welcome to Arvix AI! Please verify your email address to activate your account."
+        action_text = "Use the OTP below to verify your email."
+        footer_note = "If you did not create this account, you can ignore this email."
 
     html_body = f"""
 <!DOCTYPE html>
@@ -50,16 +52,16 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     </div>
     <!-- Body -->
     <div style="padding:40px;">
-      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{{heading}}</h2>
-      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{{body_text}}</p>
-      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{{action_text}}</p>
+      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">{heading}</h2>
+      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;line-height:1.6;">{body_text}</p>
+      <p style="margin:0 0 16px;color:#374151;font-size:14px;font-weight:600;">{action_text}</p>
       <!-- OTP Box -->
       <div style="background:#f5f3ff;border:2px dashed #3b82f6;border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;">
-        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;font-family:'Courier New',monospace;">{{otp}}</span>
+        <span style="font-size:40px;font-weight:900;letter-spacing:12px;color:#2563eb;font-family:'Courier New',monospace;">{otp}</span>
       </div>
       <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.5;">
         This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.<br>
-        If you didn't request this, you can safely ignore this email.
+        {footer_note}
       </p>
     </div>
     <!-- Footer -->
