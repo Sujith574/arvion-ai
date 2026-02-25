@@ -60,7 +60,7 @@ export default function Navbar() {
 
     // Sync theme on mount
     useEffect(() => {
-        const saved = localStorage.getItem("izra-theme") as "light" | "dark" | null;
+        const saved = localStorage.getItem("arvix-theme") as "light" | "dark" | null;
 
         if (saved) document.documentElement.setAttribute("data-theme", saved);
     }, [theme]);
@@ -141,7 +141,7 @@ export default function Navbar() {
                             backgroundClip: "text",
                         }}
                     >
-                        Izra
+                        Arvix AI
                     </span>
                 </Link>
 

@@ -1,5 +1,5 @@
 /**
- * API Client for Arvion AI Backend
+ * API Client for Arvix AI Backend
  * ====================================
  * Typed wrapper around all backend REST endpoints.
  */

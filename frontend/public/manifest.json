@@ -1,6 +1,6 @@
 {
-  "name": "Arvion AI — University Intelligence",
-  "short_name": "Arvion AI",
+  "name": "Arvix AI — University Intelligence",
+  "short_name": "Arvix AI",
   "description": "AI-powered platform for university information — admissions, courses, fees, campus life and more.",
   "start_url": "/",
   "display": "standalone",
@@ -34,7 +34,7 @@
   ],
   "shortcuts": [
     {
-      "name": "Arvion Chat",
+      "name": "Arvix Chat",
       "url": "/",
       "description": "Chat with University AI"
     }

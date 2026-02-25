@@ -16,13 +16,13 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://izra.ai"),
+  metadataBase: new URL("https://arvix.ai"),
   title: {
-    default: "Izra — Intelligent University Assistant",
-    template: "%s | Izra",
+    default: "Arvix AI — Intelligent University Assistant",
+    template: "%s | Arvix AI",
   },
   description:
-    "Izra provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
+    "Arvix AI provides 24/7 AI-powered guidance for students, parents, and admission seekers. Get verified university information, emergency support, and admission process guidance.",
   keywords: [
     "university assistant",
     "AI chatbot",
@@ -30,23 +30,23 @@ export const metadata: Metadata = {
     "admission guidance",
     "student support",
     "college assistant",
-    "Izra",
+    "Arvix AI",
   ],
-  authors: [{ name: "Izra" }],
-  creator: "Izra",
+  authors: [{ name: "Arvix AI" }],
+  creator: "Arvix AI",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://izra.ai",
-    siteName: "Izra",
-    title: "Izra — Intelligent University Assistant",
+    url: "https://arvix.ai",
+    siteName: "Arvix AI",
+    title: "Arvix AI — Intelligent University Assistant",
     description:
       "24/7 AI-powered university guidance for students, parents, and admission seekers.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Izra AI",
+    title: "Arvix AI",
     description: "AI-powered university assistant platform",
   },
   manifest: "/manifest.json",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Izra",
+    title: "Arvix AI",
   },
 };
 
@@ -87,7 +87,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('izra-theme') ||
+                  var theme = localStorage.getItem('arvix-theme') ||
                     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                   document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}

@@ -9,7 +9,7 @@ settings = get_settings()
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-SYSTEM_INSTRUCTION = """You are a helpful university assistant for {university_id}.
+SYSTEM_INSTRUCTION = """You are Arvix AI, a helpful university assistant for {university_id}.
 Your job is to answer questions about this university accurately and concisely.
 
 Rules you must follow:
@@ -77,8 +77,9 @@ async def generate_response(
         return "Service temporarily unavailable. Please contact the admissions office."
 
     try:
+        # Using gemini-1.5-flash for maximum compatibility/stability
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash",
             contents=query,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -93,6 +94,6 @@ async def generate_response(
     except Exception as e:
         logger.error(f"[Gemini] Fallback failed completely: {e}")
         return (
-            f"I'm sorry, I'm having trouble connecting to my knowledge base for {uni_name}. "
-            "Please try again in a moment or contact the university admissions office directly."
+            f"I'm sorry, I'm Arvix AI and I'm having trouble connecting to my knowledge base for {uni_name}. "
+            "This might be a temporary connection issue. Please try again in a moment or contact the university admissions office directly."
         )

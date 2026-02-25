@@ -18,7 +18,7 @@ settings = get_settings()
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
-    title="Izra API",
+    title="Arvix AI API",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url=None,
@@ -72,7 +72,7 @@ app.include_router(university_requests.router, prefix="/api/universities",  tags
 async def health_check():
     return {
         "status": "ok",
-        "service": "University AI Assistant API",
+        "service": "Arvix AI Assistant API",
         "ai": "proprietary_core",
         "rag": "faiss_local",
         "year": 2026,

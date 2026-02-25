@@ -84,7 +84,7 @@ export default function LoginPage() {
                             color: "var(--brand-600)",
                             letterSpacing: "-1px"
                         }}>
-                            Izra
+                            Arvix AI
                         </h1>
                     </Link>
                     <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>

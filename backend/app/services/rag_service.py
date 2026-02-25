@@ -64,9 +64,9 @@ _IDENTITY_RE = re.compile(
     r"|who\s*(made|built|creat|develop|train)\s*(you|u)"
     r"|what\s*(are|is)\s*(you|ur|your|this)\s*(ai|bot|assistant|model|system|platform|app)"
     r"|(are|r)\s*(you|u)\s*(an?\s*)?(ai|bot|robot|assistant|human|real)"
-    r"|(who|what)\s*(is|are)\s*(izra|you|ur)"
+    r"|(who|what)\s*(is|are)\s*(arvix\s*ai|you|ur)"
     r"|(tell|explain|describe)\s*(me\s*)?(about\s*)?(yourself|you|your\s*self)"
-    r"|how\s*(does|do)\s*(you|this|izra)\s*work"
+    r"|how\s*(does|do)\s*(you|this|arvix\s*ai)\s*work"
     r"|what\s*can\s*(you|u)\s*do"
     r"|(are|r)\s*(you|u)\s*(powered|run|based|built)\s*(by|on|with)"
     r"|your\s*(purpose|goal|function|role|job|mission)"
@@ -168,8 +168,6 @@ class RAGService:
             )
         
         return await generate_response(query, self.university_id, system_instruction=prompt)
-        
-        return await generate_response(query, self.university_id, system_instruction=prompt)
 
 
     # ── FAISS index (per-university, isolated) ─────────────────────────────
@@ -239,7 +237,7 @@ class RAGService:
                     return {"answer": answer, "category": "general", "confidence": 0.0, "sources": ["proprietary_ai"], "used_fallback": True}
             except Exception:
                 pass
-            return {"answer": "I'm the University AI Assistant. I couldn't find a specific answer. Please contact admissions.", "category": "general", "confidence": 0.0, "sources": [], "used_fallback": True}
+            return {"answer": "I'm the Arvix AI Assistant. I couldn't find a specific answer. Please contact admissions.", "category": "general", "confidence": 0.0, "sources": [], "used_fallback": True}
 
 
     async def _query_impl(self, query: str, confidence_threshold: float, category_filter: str | None, user_id: str | None) -> dict:
@@ -249,7 +247,7 @@ class RAGService:
             answer = await self._call_ai(query, is_greeting=True)
             if not answer:
                 answer = (
-                    f"Hello! 👋 I'm the AI assistant for {self.university_id.upper()} university. "
+                    f"Hello! 👋 I'm Arvix AI, the assistant for {self.university_id.upper()} university. "
                     f"I'm here to help you with information about admissions, courses, fees, "
                     f"hostel, placements, campus life, and much more. What would you like to know?"
                 )
@@ -269,7 +267,7 @@ class RAGService:
                 f"You are the official AI assistant for {uni} university, built specifically for {uni} students, parents, and applicants.\n"
                 f"The user is asking a meta/identity question about you (the AI assistant).\n"
                 f"IMPORTANT: Do NOT discuss university entrance exams or training programs. Answer about yourself as an AI assistant.\n\n"
-                f"Respond warmly and briefly: explain that you are Izra AI, the official AI assistant for {uni}, "
+                f"Respond warmly and briefly: explain that you are Arvix AI, the official AI assistant for {uni}, "
                 f"that you were trained on {uni}'s official data and knowledge base, "
                 f"powered by advanced AI technology. You can help with admissions, fees, hostel, courses, placements, campus life, and emergencies.\n\n"
                 f"User question: {query}\n\nAnswer:"
@@ -277,7 +275,7 @@ class RAGService:
             try:
                 answer = await self._call_ai(query, context=prompt)
             except Exception:
-                answer = f"I'm the official AI assistant for {self.university_id.upper()}, here to help students, parents, and applicants with accurate information about missions, courses, fees, and campus life."
+                answer = f"I'm Arvix AI, the official assistant for {self.university_id.upper()}, here to help students, parents, and applicants with accurate information about admissions, courses, fees, and campus life."
             return {
                 "answer": answer,
                 "category": "general",
@@ -360,7 +358,7 @@ class RAGService:
         answer = await self._call_ai(query, context=kb_context)
         if not answer:
             # AI failed → use best direct KB match
-            answer = top_doc.get("answer") or "I'm the University AI Assistant. I couldn't find a specific answer. Please contact admissions."
+            answer = top_doc.get("answer") or "I'm the Arvix AI Assistant. I couldn't find a specific answer. Please contact admissions."
 
 
 
