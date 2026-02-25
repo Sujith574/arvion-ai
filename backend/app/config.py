@@ -4,11 +4,11 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Firebase
-    FIREBASE_PROJECT_ID: str = "arvion-241094"
+    FIREBASE_PROJECT_ID: str
     FIREBASE_SERVICE_ACCOUNT_PATH: str = "serviceAccountKey.json"
 
     # JWT
-    JWT_SECRET_KEY: str = "arvion-super-secret-jwt-key-change-in-production-2026"
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 
