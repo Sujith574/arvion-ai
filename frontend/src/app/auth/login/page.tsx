@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { authLogin } from "@/lib/api";
+import { authLogin, API_BASE } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 
@@ -54,7 +54,7 @@ export default function LoginPage() {
             // Handle common fetch errors specifically
             const msg = err.message || "";
             if (msg.includes("Failed to fetch") || msg.includes("TypeError")) {
-                setError("Connection lost. Please check your internet or try again in a moment.");
+                setError(`Connection lost to ${API_BASE}. Details: ${msg}`);
             } else {
                 setError(msg || "Invalid email or password.");
             }
