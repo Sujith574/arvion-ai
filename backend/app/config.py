@@ -4,11 +4,11 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Firebase
-    FIREBASE_PROJECT_ID: str
+    FIREBASE_PROJECT_ID: str = "arvion-241094"
     FIREBASE_SERVICE_ACCOUNT_PATH: str = "serviceAccountKey.json"
 
     # JWT
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str = "arvion-super-secret-jwt-key-change-in-production-2026"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
 
@@ -24,14 +24,14 @@ class Settings(BaseSettings):
     SMTP_APP_PASSWORD: str = ""
 
     # Embedding model (local, for FAISS knowledge-base search)
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    EMBEDDING_MODEL: str = "/app/model_cache"
     DEFAULT_CONFIDENCE_THRESHOLD: float = 0.75
 
     # Rate limiting
     RATE_LIMIT_PER_MINUTE: int = 20
 
     # Frontend origin (for CORS)
-    FRONTEND_URL: str = "https://arvion-frontend-348624065149.us-central1.run.app"
+    FRONTEND_URL: str = "https://arvion-frontend-noaidrnbfa-uc.a.run.app"
 
     class Config:
         env_file = ".env"
