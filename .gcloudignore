@@ -39,6 +39,8 @@ Thumbs.db
 # Backend specific large folders
 backend/venv/
 backend/frontend/
+backend/model_cache/
+**/model_cache/
 
 # Local envs
 .env
