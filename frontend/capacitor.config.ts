@@ -5,8 +5,16 @@ const config: CapacitorConfig = {
   appName: 'Arvix AI',
   webDir: 'out',
   server: {
-    url: 'https://arvion-backend-348624065149.us-central1.run.app',
+    // This points the app directly to your Cloud Run frontend
+    // Any code you push to Cloud Run will automatically update in the app!
+    url: 'https://arvion-frontend-348624065149.us-central1.run.app',
     cleartext: true
+  },
+  android: {
+    allowMixedContent: true
+  },
+  ios: {
+    contentInset: 'always'
   }
 };
 
