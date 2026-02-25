@@ -19,11 +19,24 @@ _CACHE_TTL_SECONDS = 120  # 2 minute cache for university list
 def init_firebase():
     settings = get_settings()
     if not firebase_admin._apps:
-
-        cred = credentials.ApplicationDefault()
-        firebase_admin.initialize_app(cred, {
-            "projectId": settings.FIREBASE_PROJECT_ID
-        })
+        try:
+            # 1. Attempt using Service Account JSON (Local Dev / Explicit File)
+            import os
+            sa_path = settings.FIREBASE_SERVICE_ACCOUNT_PATH
+            if os.path.exists(sa_path):
+                logger.info(f"[Firebase] Initializing with service account: {sa_path}")
+                cred = credentials.Certificate(sa_path)
+                firebase_admin.initialize_app(cred)
+            else:
+                # 2. Fallback to Application Default Credentials (Cloud Run / GCP Native)
+                logger.info("[Firebase] Fallback to Application Default Credentials (ADC)")
+                cred = credentials.ApplicationDefault()
+                firebase_admin.initialize_app(cred, {
+                    "projectId": settings.FIREBASE_PROJECT_ID
+                })
+        except Exception as e:
+            logger.error(f"[Firebase] Initialization critical failure: {e}")
+            # Do not re-throw, let the app try to start, though Firestore calls will fail later
 
 
 def get_db():
