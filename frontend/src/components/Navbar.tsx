@@ -83,7 +83,6 @@ export default function Navbar() {
                 transition: "all 0.3s ease",
                 backdropFilter: scrolled ? "blur(20px) saturate(180%)" : "none",
                 WebkitBackdropFilter: scrolled ? "blur(20px) saturate(180%)" : "none",
-                paddingTop: "env(safe-area-inset-top, 0px)",
                 background: scrolled
                     ? "var(--surface)"
                     : "transparent",
@@ -91,6 +90,7 @@ export default function Navbar() {
                     ? "1px solid var(--border)"
                     : "1px solid transparent",
                 boxShadow: scrolled ? "var(--shadow-sm)" : "none",
+                paddingTop: "env(safe-area-inset-top, 0px)",
             }}
         >
             <nav

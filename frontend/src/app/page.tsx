@@ -261,7 +261,7 @@ export default function HomePage() {
               }}
             >
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-              Now live · Lovely Professional University
+              Now live in 1 university · Expanding soon
             </div>
 
             {/* Headline */}
@@ -292,7 +292,7 @@ export default function HomePage() {
                 animation: "fadeInUp 0.5s ease-out 0.2s both",
               }}
             >
-              Get instant, verified answers about admissions, hostel, fees, scholarships, and emergencies — tailored to your university.
+              Launching with LPU · More coming. Get instant, verified answers about admissions, hostel, fees, scholarships, and emergencies — tailored to your university.
             </p>
 
             {/* University Selector */}
