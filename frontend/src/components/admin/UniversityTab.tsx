@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { addUniversity, getUniversityRequests, approveUniversityRequest } from "@/lib/api";
+import { addUniversity, getUniversityRequests, approveUniversityRequest, rejectUniversityRequest } from "@/lib/api";
 
 export default function UniversityTab({ token }: { token: string }) {
     const [submitting, setSubmitting] = useState(false);
@@ -56,6 +56,17 @@ export default function UniversityTab({ token }: { token: string }) {
         }
     };
 
+    const handleReject = async (id: string, uniName: string) => {
+        if (!confirm(`Reject request for '${uniName}'?`)) return;
+        try {
+            await rejectUniversityRequest(id, token);
+            alert(`Request for ${uniName} has been rejected.`);
+            fetchRequests();
+        } catch (err: any) {
+            alert(`Error rejecting: ${err.message}`);
+        }
+    };
+
     return (
         <div className="admin-two-col">
 
@@ -78,12 +89,20 @@ export default function UniversityTab({ token }: { token: string }) {
                             <div key={req.id} style={{ padding: "1rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)" }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem", gap: "0.75rem", flexWrap: "wrap" }}>
                                     <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", flex: 1, minWidth: 0, wordBreak: "break-word" }}>{req.university_name}</h3>
-                                    <button
-                                        onClick={() => handleApprove(req.id, req.university_name)}
-                                        style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", border: "none", background: "var(--brand-600)", color: "white", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
-                                    >
-                                        Approve &amp; Publish
-                                    </button>
+                                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                                        <button
+                                            onClick={() => handleReject(req.id, req.university_name)}
+                                            style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", border: "1px solid #fecaca", background: "#fff1f2", color: "#be123c", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                                        >
+                                            Reject
+                                        </button>
+                                        <button
+                                            onClick={() => handleApprove(req.id, req.university_name)}
+                                            style={{ padding: "0.4rem 0.8rem", borderRadius: "6px", border: "none", background: "var(--brand-600)", color: "white", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                                        >
+                                            Approve &amp; Publish
+                                        </button>
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
                                     <div><strong>Requested by:</strong> {req.requester_name || "Anonymous"}</div>

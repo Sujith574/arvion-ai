@@ -10,6 +10,7 @@ import KnowledgeTab from "@/components/admin/KnowledgeTab";
 import UniversityTab from "@/components/admin/UniversityTab";
 import DataTab from "@/components/admin/DataTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 const icons = {
@@ -180,146 +181,158 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* ── Overview ─────────────────────────────── */}
-                    {activeTab === "overview" && (
-                        <div className="admin-overview-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
-                            {/* Category Chart */}
-                            <div className="card" style={{ padding: "1.75rem", gridColumn: "1 / -1" }}>
-                                <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.5rem" }}>Queries by Category</h2>
-                                <ResponsiveContainer width="100%" height={260}>
-                                    <BarChart data={chartData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                                        <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 12, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
-                                        <Tooltip
-                                            contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "0.875rem" }}
-                                            cursor={{ fill: "var(--bg-subtle)" }}
-                                        />
-                                        <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                                            {chartData.map((_, index) => (
-                                                <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    {/* ── Tab Content with Transitions ───────────── */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ width: "100%" }}
+                        >
+                            {/* ── Overview ─────────────────────────────── */}
+                            {activeTab === "overview" && (
+                                <div className="admin-overview-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
+                                    {/* Category Chart */}
+                                    <div className="card" style={{ padding: "1.75rem", gridColumn: "1 / -1" }}>
+                                        <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.5rem" }}>Queries by Category</h2>
+                                        <ResponsiveContainer width="100%" height={260}>
+                                            <BarChart data={chartData} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                                                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
+                                                <YAxis tick={{ fontSize: 12, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
+                                                <Tooltip
+                                                    contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px", fontSize: "0.875rem" }}
+                                                    cursor={{ fill: "var(--bg-subtle)" }}
+                                                />
+                                                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                                                    {chartData.map((_, index) => (
+                                                        <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+
+                                    {/* Confidence Level */}
+                                    <div className="card" style={{ padding: "1.75rem" }}>
+                                        <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>Confidence Health</h2>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+                                            {[
+                                                { label: "High confidence (>85%)", pct: 65, color: "#22c55e" },
+                                                { label: "Medium confidence (75-85%)", pct: 22, color: "#f59e0b" },
+                                                { label: "Low confidence (<75%)", pct: 13, color: "#ef4444" },
+                                            ].map((bar) => (
+                                                <div key={bar.label}>
+                                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", marginBottom: "0.3rem" }}>
+                                                        <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{bar.label}</span>
+                                                        <span style={{ fontWeight: 700, color: bar.color }}>{bar.pct}%</span>
+                                                    </div>
+                                                    <div style={{ height: "8px", borderRadius: "4px", background: "var(--border)" }}>
+                                                        <div style={{ height: "100%", borderRadius: "4px", background: bar.color, width: `${bar.pct}%`, transition: "width 0.8s ease" }} />
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Confidence Level */}
-                            <div className="card" style={{ padding: "1.75rem" }}>
-                                <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>Confidence Health</h2>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-                                    {[
-                                        { label: "High confidence (>85%)", pct: 65, color: "#22c55e" },
-                                        { label: "Medium confidence (75-85%)", pct: 22, color: "#f59e0b" },
-                                        { label: "Low confidence (<75%)", pct: 13, color: "#ef4444" },
-                                    ].map((bar) => (
-                                        <div key={bar.label}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", marginBottom: "0.3rem" }}>
-                                                <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{bar.label}</span>
-                                                <span style={{ fontWeight: 700, color: bar.color }}>{bar.pct}%</span>
-                                            </div>
-                                            <div style={{ height: "8px", borderRadius: "4px", background: "var(--border)" }}>
-                                                <div style={{ height: "100%", borderRadius: "4px", background: bar.color, width: `${bar.pct}%`, transition: "width 0.8s ease" }} />
-                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                    </div>
 
-                            {/* AI Status */}
-                            <div className="card" style={{ padding: "1.75rem" }}>
-                                <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>AI Layer Status</h2>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                                    {[
-                                        { label: "Cloud AI Core", status: "Online", color: "#22c55e" },
-                                        { label: "FAISS Knowledge Base", status: "Active", color: "#22c55e" },
-                                        { label: "Firebase Firestore", status: "Connected", color: "#22c55e" },
-                                        { label: "Rate Limiter", status: "20 req/min", color: "#3b82f6" },
-                                    ].map((item) => (
-                                        <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.625rem 0.875rem", borderRadius: "10px", background: "var(--bg-subtle)", border: "1px solid var(--border)" }}>
-                                            <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-secondary)" }}>{item.label}</span>
-                                            <span style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.8125rem", fontWeight: 700, color: item.color }}>
-                                                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: item.color }} />
-                                                {item.status}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Query Logs ─────────────────────────────── */}
-                    {activeTab === "logs" && (
-                        <div className="card" style={{ overflow: "hidden" }}>
-                            <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <h2 style={{ fontSize: "1.0625rem", fontWeight: 700 }}>Recent Query Logs</h2>
-                                <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600 }}>{logs.length} entries</span>
-                            </div>
-                            <div style={{ overflowX: "auto" }}>
-                                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-                                    <thead>
-                                        <tr style={{ background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
-                                            {["Query", "Category", "Confidence", "Source", "Time"].map((h) => (
-                                                <th key={h} style={{ padding: "0.75rem 1.25rem", textAlign: "left", fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap", fontSize: "0.8125rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</th>
+                                    {/* AI Status */}
+                                    <div className="card" style={{ padding: "1.75rem" }}>
+                                        <h2 style={{ fontSize: "1.0625rem", fontWeight: 700, marginBottom: "1.25rem" }}>AI Layer Status</h2>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                                            {[
+                                                { label: "Cloud AI Core", status: "Online", color: "#22c55e" },
+                                                { label: "FAISS Knowledge Base", status: "Active", color: "#22c55e" },
+                                                { label: "Firebase Firestore", status: "Connected", color: "#22c55e" },
+                                                { label: "Rate Limiter", status: "20 req/min", color: "#3b82f6" },
+                                            ].map((item) => (
+                                                <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.625rem 0.875rem", borderRadius: "10px", background: "var(--bg-subtle)", border: "1px solid var(--border)" }}>
+                                                    <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-secondary)" }}>{item.label}</span>
+                                                    <span style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.8125rem", fontWeight: 700, color: item.color }}>
+                                                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: item.color }} />
+                                                        {item.status}
+                                                    </span>
+                                                </div>
                                             ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {logs.map((log, i) => (
-                                            <tr key={log.id || i} style={{ borderBottom: "1px solid var(--border-subtle)", transition: "background 0.15s" }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-subtle)")}
-                                                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                                            >
-                                                <td style={{ padding: "1rem 1.25rem", maxWidth: "300px" }}>
-                                                    <span style={{ color: "var(--text-primary)", fontWeight: 500, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                        {log.query}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: "1rem 1.25rem" }}>
-                                                    <span style={{ padding: "0.2rem 0.625rem", borderRadius: "999px", background: "var(--bg-subtle)", fontSize: "0.75rem", fontWeight: 700, color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-                                                        {log.category || "general"}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: "1rem 1.25rem" }}>
-                                                    <span style={{
-                                                        fontWeight: 700, fontSize: "0.875rem",
-                                                        color: (log.confidence_score || 0) >= 0.75 ? "#16a34a" : "#d97706",
-                                                    }}>
-                                                        {((log.confidence_score || 0) * 100).toFixed(0)}%
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: "1rem 1.25rem" }}>
-                                                    <span style={{
-                                                        padding: "0.2rem 0.625rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 700,
-                                                        background: log.used_fallback_llm ? "#eff6ff" : "#f0fdf4",
-                                                        color: log.used_fallback_llm ? "#2563eb" : "#16a34a",
-                                                    }}>
-                                                        {log.used_fallback_llm ? "Cloud AI" : "Knowledge Base"}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: "1rem 1.25rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
-                                                    {log.timestamp ? new Date(log.timestamp).toLocaleString() : "—"}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* ── Knowledge Base ─────────────────────────── */}
-                    {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={activeSlug} />}
+                            {/* ── Query Logs ─────────────────────────────── */}
+                            {activeTab === "logs" && (
+                                <div className="card" style={{ overflow: "hidden" }}>
+                                    <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <h2 style={{ fontSize: "1.0625rem", fontWeight: 700 }}>Recent Query Logs</h2>
+                                        <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600 }}>{logs.length} entries</span>
+                                    </div>
+                                    <div style={{ overflowX: "auto" }}>
+                                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+                                            <thead>
+                                                <tr style={{ background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
+                                                    {["Query", "Category", "Confidence", "Source", "Time"].map((h) => (
+                                                        <th key={h} style={{ padding: "0.75rem 1.25rem", textAlign: "left", fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap", fontSize: "0.8125rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {logs.map((log, i) => (
+                                                    <tr key={log.id || i} style={{ borderBottom: "1px solid var(--border-subtle)", transition: "background 0.15s" }}
+                                                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-subtle)")}
+                                                        onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                                                    >
+                                                        <td style={{ padding: "1rem 1.25rem", maxWidth: "300px" }}>
+                                                            <span style={{ color: "var(--text-primary)", fontWeight: 500, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                                {log.query}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: "1rem 1.25rem" }}>
+                                                            <span style={{ padding: "0.2rem 0.625rem", borderRadius: "999px", background: "var(--bg-subtle)", fontSize: "0.75rem", fontWeight: 700, color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+                                                                {log.category || "general"}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: "1rem 1.25rem" }}>
+                                                            <span style={{
+                                                                fontWeight: 700, fontSize: "0.875rem",
+                                                                color: (log.confidence_score || 0) >= 0.75 ? "#16a34a" : "#d97706",
+                                                            }}>
+                                                                {((log.confidence_score || 0) * 100).toFixed(0)}%
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: "1rem 1.25rem" }}>
+                                                            <span style={{
+                                                                padding: "0.2rem 0.625rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 700,
+                                                                background: log.used_fallback_llm ? "#eff6ff" : "#f0fdf4",
+                                                                color: log.used_fallback_llm ? "#2563eb" : "#16a34a",
+                                                            }}>
+                                                                {log.used_fallback_llm ? "Cloud AI" : "Knowledge Base"}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: "1rem 1.25rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                                                            {log.timestamp ? new Date(log.timestamp).toLocaleString() : "—"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* ── Approvals ─────────────────────────────── */}
-                    {activeTab === "university" && <UniversityTab token={token!} />}
+                            {/* ── Knowledge Base ─────────────────────────── */}
+                            {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={activeSlug} />}
 
-                    {/* ── Data File Management ───────────────────── */}
-                    {activeTab === "data" && <DataTab token={token!} />}
+                            {/* ── Approvals ─────────────────────────────── */}
+                            {activeTab === "university" && <UniversityTab token={token!} />}
 
-                    {/* ── Feedback ────────────────────────────────── */}
-                    {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={activeSlug} />}
+                            {/* ── Data File Management ───────────────────── */}
+                            {activeTab === "data" && <DataTab token={token!} />}
+
+                            {/* ── Feedback ────────────────────────────────── */}
+                            {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={activeSlug} />}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </main>
 

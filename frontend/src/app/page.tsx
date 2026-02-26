@@ -6,6 +6,23 @@ import Navbar from "@/components/Navbar";
 import { getUniversities, requestUniversity, type University } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import PWAInstallButton from "@/components/PWAInstallButton";
+import { motion } from "framer-motion";
+import { LucideShield, LucideBrain, LucideClock, LucideSparkles, LucideGraduationCap, LucideHeart, LucideArrowRight, LucideMapPin, LucideUsers, LucideMessageSquare } from "lucide-react";
+
+// ── Motion Variants ───────────────────────────────────────────
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: "easeOut" }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 // ── Icons ─────────────────────────────────────────────────────
 const icons = {
@@ -200,7 +217,7 @@ export default function HomePage() {
         {/* ── Hero Section ─────────────────────────────────── */}
         <section
           id="hero"
-          className="hero-section"
+          className="hero-section gradient-mesh"
           style={{
             minHeight: "100vh",
             display: "flex",
@@ -213,103 +230,97 @@ export default function HomePage() {
             overflow: "hidden",
           }}
         >
-          {/* BG gradient blobs */}
+          {/* Animated Glass Overlay */}
           <div
             style={{
               position: "absolute",
-              top: "10%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "800px",
-              height: "600px",
-              background:
-                "radial-gradient(ellipse, rgb(59 130 246 / 0.12) 0%, transparent 70%)",
-              pointerEvents: "none",
-              zIndex: 0,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: "5%",
-              right: "-10%",
-              width: "400px",
-              height: "400px",
-              background:
-                "radial-gradient(ellipse, rgb(139 92 246 / 0.1) 0%, transparent 70%)",
-              pointerEvents: "none",
+              inset: 0,
+              background: "rgba(255, 255, 255, 0.45)",
+              backdropFilter: "blur(40px)",
               zIndex: 0,
             }}
           />
 
-          <div style={{ position: "relative", zIndex: 1, maxWidth: "800px", margin: "0 auto" }}>
+          <motion.div
+            initial="initial"
+            animate="animate"
+            variants={staggerContainer}
+            style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto" }}
+          >
             {/* Badge */}
-            <div
+            <motion.div
+              variants={fadeInUp}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                padding: "0.4rem 1rem",
+                padding: "0.5rem 1.25rem",
                 borderRadius: "999px",
-                background: "var(--brand-50)",
-                border: "1px solid var(--brand-200)",
-                fontSize: "0.8125rem",
+                background: "rgba(255, 255, 255, 0.8)",
+                border: "1px solid rgba(139, 92, 246, 0.2)",
+                fontSize: "0.875rem",
                 fontWeight: 600,
                 color: "var(--brand-700)",
                 marginBottom: "1.5rem",
-                animation: "fadeInUp 0.5s ease-out",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
               }}
             >
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-              Now live in 1 university · Expanding soon
-            </div>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 8px #22c55e" }} />
+              Direct Intelligence for Your Campus
+            </motion.div>
 
             {/* Headline */}
-            <h1
+            <motion.h1
+              variants={fadeInUp}
               className="hero-headline"
               style={{
-                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                fontSize: "clamp(2.75rem, 7vw, 5rem)",
                 fontWeight: 900,
-                lineHeight: 1.08,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.05,
+                color: "#1e1b4b",
                 marginBottom: "1.5rem",
-                animation: "fadeInUp 0.5s ease-out 0.1s both",
               }}
             >
-              Your{" "}
-              <span className="gradient-text">AI-Powered</span>
-              <br />
-              University Guide
-            </h1>
+              Master Your <br />
+              <span className="gradient-text" style={{ background: "linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>University Life</span>
+            </motion.h1>
 
             {/* Subtitle */}
-            <p
+            <motion.p
+              variants={fadeInUp}
               style={{
-                fontSize: "clamp(1.0625rem, 2.5vw, 1.25rem)",
-                color: "var(--text-secondary)",
-                lineHeight: 1.7,
-                maxWidth: "540px",
-                margin: "0 auto 2.5rem",
-                animation: "fadeInUp 0.5s ease-out 0.2s both",
+                fontSize: "clamp(1.125rem, 2.5vw, 1.375rem)",
+                color: "rgb(30 27 75 / 0.7)",
+                lineHeight: 1.6,
+                maxWidth: "600px",
+                margin: "0 auto 3rem",
+                fontWeight: 500,
               }}
             >
-              Launching with LPU · More coming. Get instant, verified answers about admissions, hostel, fees, scholarships, and emergencies — tailored to your university.
-            </p>
+              The first truly intelligent assistant for Indian universities. Instant, verified answers powered by advanced RAG technology.
+            </motion.p>
 
             {/* University Selector */}
-            <div
+            <motion.div
+              variants={fadeInUp}
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "0.75rem",
-                maxWidth: "480px",
-                margin: "0 auto 2.5rem",
-                animation: "fadeInUp 0.5s ease-out 0.3s both",
+                gap: "1rem",
+                maxWidth: "520px",
+                margin: "0 auto 3rem",
+                padding: "1rem",
+                background: "rgba(255, 255, 255, 0.4)",
+                borderRadius: "24px",
+                border: "1px solid rgba(255, 255, 255, 0.5)",
+                backdropFilter: "blur(10px)",
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  gap: "0.5rem",
+                  gap: "0.75rem",
                   flexWrap: "wrap",
                 }}
               >
@@ -318,9 +329,16 @@ export default function HomePage() {
                   value={selectedUni}
                   onChange={(e) => setSelectedUni(e.target.value)}
                   className="input"
-                  style={{ flex: 1, minWidth: "200px" }}
+                  style={{
+                    flex: 1,
+                    minWidth: "200px",
+                    borderRadius: "16px",
+                    border: "1.5px solid rgba(139, 92, 246, 0.2)",
+                    background: "white",
+                    fontWeight: 500
+                  }}
                 >
-                  <option value="">Select your university…</option>
+                  <option value="">Choose University</option>
                   {universities.map((u) => (
                     <option key={u.slug} value={u.slug}>
                       {u.name}
@@ -330,86 +348,86 @@ export default function HomePage() {
                 <Link
                   href={selectedUni ? `/university/${selectedUni}` : "#"}
                   className="btn-primary"
-                  style={{ flexShrink: 0 }}
+                  style={{
+                    padding: "0 2rem",
+                    height: "3.25rem",
+                    borderRadius: "16px",
+                    background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                    boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)"
+                  }}
                   onClick={(e) => { if (!selectedUni) e.preventDefault(); }}
                 >
-                  Explore {icons.arrow}
+                  Launch AI <LucideArrowRight size={20} />
                 </Link>
               </div>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-                More universities coming soon —{" "}
-                <a href="#" style={{ color: "var(--brand-600)", textDecoration: "none", fontWeight: 500 }}>
-                  Request yours
-                </a>
-              </p>
-            </div>
+            </motion.div>
 
-            {/* Quick CTAs */}
-            <div
+            {/* Quick Chips */}
+            <motion.div
+              variants={fadeInUp}
               style={{
                 display: "flex",
-                gap: "1rem",
+                gap: "0.75rem",
                 justifyContent: "center",
                 flexWrap: "wrap",
-                animation: "fadeInUp 0.5s ease-out 0.35s both",
+                marginBottom: "3rem"
               }}
             >
               {[
-                { label: "For Students", icon: icons.graduation, href: "/#features" },
-                { label: "For Parents", icon: icons.heart, href: "/#features" },
-                { label: "For Admissions", icon: icons.chat, href: "/#features" },
-              ].map((cta) => (
-                <a
-                  key={cta.label}
-                  href={cta.href}
-                  className="btn-secondary mobile-cta-btn"
-                  style={{ gap: "0.375rem", fontSize: "0.875rem", padding: "0.5rem 1.125rem", whiteSpace: "nowrap" }}
-                >
-                  {cta.icon} {cta.label}
-                </a>
+                { label: "Admissions", icon: <LucideGraduationCap size={18} /> },
+                { label: "Hostel Details", icon: <LucideMapPin size={18} /> },
+                { label: "Fee Structures", icon: <LucideMessageSquare size={18} /> },
+              ].map((item) => (
+                <div key={item.label} style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.5rem 1rem",
+                  background: "rgba(255, 255, 255, 0.6)",
+                  borderRadius: "12px",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#4338ca",
+                  border: "1px solid rgba(139, 92, 246, 0.1)"
+                }}>
+                  {item.icon} {item.label}
+                </div>
               ))}
-            </div>
+            </motion.div>
 
-            {/* Hero App Download Button */}
-            <div style={{ textAlign: "center", animation: "fadeInUp 0.5s ease-out 0.4s both", paddingBottom: "1rem" }}>
+            <motion.div variants={fadeInUp} style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
               <PWAInstallButton variant="hero" />
-            </div>
+            </motion.div>
+          </motion.div>
 
-            {/* Request University CTA */}
-            <div style={{ textAlign: "center", paddingBottom: "2rem", animation: "fadeInUp 0.5s ease-out 0.5s both" }}>
-              <a href="/request-university" style={{ fontSize: "0.875rem", color: "var(--text-muted)", textDecoration: "none", borderBottom: "1px dashed var(--text-muted)", paddingBottom: "1px" }}>
-                🏛️ Don&apos;t see your university? Request it →
-              </a>
-            </div>
-          </div>
-
-          {/* Scroll indicator */}
-          <div
+          {/* Scroll Progress */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
             style={{
               position: "absolute",
-              bottom: "2rem",
+              bottom: "3rem",
               left: "50%",
               transform: "translateX(-50%)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "0.375rem",
-              color: "var(--text-muted)",
+              gap: "0.5rem",
+              color: "#4338ca",
               fontSize: "0.75rem",
-              animation: "fadeIn 1s ease-out 1s both",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase"
             }}
           >
-            <span>Scroll to explore</span>
-            <div style={{
-              width: "20px", height: "32px", border: "2px solid var(--border)",
-              borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center"
-            }}>
-              <div style={{
-                width: "3px", height: "8px", background: "var(--brand-500)", borderRadius: "2px",
-                animation: "typing-dot 1.5s ease-in-out infinite"
-              }} />
-            </div>
-          </div>
+            <span>Explore</span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              style={{ width: "2px", height: "40px", background: "linear-gradient(to bottom, #4f46e5, transparent)", borderRadius: "2px" }}
+            />
+          </motion.div>
         </section>
 
         {/* ── Stats Bar ─────────────────────────────────────── */}

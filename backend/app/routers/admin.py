@@ -148,6 +148,32 @@ async def approve_university_request(request_id: str, _=Depends(require_admin)):
     db.collection("university_requests").document(request_id).update({"status": "approved"})
     return {"message": f"University '{slug}' approved and activated"}
 
+@router.post("/university-requests/{request_id}/reject")
+async def reject_university_request(request_id: str, _=Depends(require_admin)):
+    """Super admin: reject a university request."""
+    db = get_db()
+    req_doc = db.collection("university_requests").document(request_id).get()
+    if not req_doc.exists:
+        raise HTTPException(404, "Request not found")
+
+    # Update request status to rejected
+    db.collection("university_requests").document(request_id).update({"status": "rejected"})
+    return {"message": "University request rejected"}
+
+
+@router.get("/universities")
+async def admin_list_universities(_=Depends(require_admin)):
+    """
+    Admin: list all universities directly from Firestore (bypassing public TTL cache).
+    This ensures admins always see the latest state (e.g. after deletion).
+    """
+    db = get_db()
+    # Direct fetch from DB, no TTL cache here
+    docs = db.collection("universities").stream()
+    unis = [{"id": d.id, **d.to_dict()} for d in docs]
+    return {"universities": unis}
+
+
 from pydantic import BaseModel
 class CreateUniversityRequest(BaseModel):
     name: str

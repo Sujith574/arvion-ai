@@ -3,21 +3,22 @@
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Brand */
-  --brand-50: #eff6ff;
-  --brand-100: #dbeafe;
-  --brand-200: #bfdbfe;
-  --brand-300: #93c5fd;
-  --brand-400: #60a5fa;
-  --brand-500: #3b82f6;
-  --brand-600: #2563eb;
-  --brand-700: #1d4ed8;
-  --brand-800: #1e40af;
-  --brand-900: #1e3a8a;
+  /* Brand - Deep Indigo/Violet */
+  --brand-50: #f5f3ff;
+  --brand-100: #ede9fe;
+  --brand-200: #ddd6fe;
+  --brand-300: #c4b5fd;
+  --brand-400: #a78bfa;
+  --brand-500: #8b5cf6;
+  --brand-600: #7c3aed;
+  --brand-700: #6d28d9;
+  --brand-800: #5b21b6;
+  --brand-900: #4c1d95;
 
-  /* Accent */
-  --accent-500: #8b5cf6;
-  --accent-600: #7c3aed;
+  /* Accent - Nebula Rose */
+  --accent-400: #fb7185;
+  --accent-500: #f43f5e;
+  --accent-600: #e11d48;
 
   /* Neutrals */
   --gray-50: #f9fafb;
@@ -154,10 +155,10 @@ h6 {
 
 /* ── Utility Classes ────────────────────────────────────────── */
 .glass {
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  background: rgb(255 255 255 / 0.8);
-  border: 1px solid rgb(255 255 255 / 0.3);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 [data-theme="dark"] .glass {
@@ -167,6 +168,14 @@ h6 {
 
 .gradient-brand {
   background: linear-gradient(135deg, var(--brand-600) 0%, var(--accent-500) 100%);
+}
+
+.gradient-mesh {
+  background-color: #8b5cf6;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253, 100%, 70%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225, 100%, 50%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 100%, 60%, 1) 0, transparent 50%);
 }
 
 .gradient-text {

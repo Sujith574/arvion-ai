@@ -324,6 +324,14 @@ export async function approveUniversityRequest(requestId: string, token: string)
     return handleResponse<{ message: string }>(res);
 }
 
+export async function rejectUniversityRequest(requestId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/university-requests/${requestId}/reject`, {
+        method: "POST",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
 export async function updateUniversity(slug: string, data: any, token: string) {
     const res = await fetch(`${API_BASE}/api/admin/universities/${slug}`, {
         method: "PATCH",
@@ -375,7 +383,7 @@ export async function deleteAllEntries(universitySlug: string, token: string) {
 }
 
 export async function listAllUniversities(token: string) {
-    const res = await fetch(`${API_BASE}/api/universities/`, {
+    const res = await fetch(`${API_BASE}/api/admin/universities`, {
         headers: getHeaders(token),
     });
     return handleResponse<{ universities: University[] }>(res);
