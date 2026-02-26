@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, AliasChoices
 from app.services.firebase import get_db
 from firebase_admin import firestore
 import uuid
@@ -11,7 +11,7 @@ class UniversityRequestModel(BaseModel):
     university_name: str
     university_location: str | None = "Unknown"
     requester_name: str | None = "Anonymous"
-    email: EmailStr  # Sync with frontend field name
+    requester_email: EmailStr = Field(..., alias="email", validation_alias=AliasChoices("email", "requester_email"))
     requester_role: str = "potential_user"
     message: str = ""
 
@@ -30,7 +30,7 @@ async def request_university(body: UniversityRequestModel):
         "university_name": body.university_name.strip(),
         "university_location": body.university_location.strip() if body.university_location else "Unknown",
         "requester_name": body.requester_name.strip() if body.requester_name else "Anonymous",
-        "requester_email": body.email,
+        "requester_email": body.requester_email,
         "requester_role": body.requester_role,
         "message": body.message.strip(),
         "status": "pending",
