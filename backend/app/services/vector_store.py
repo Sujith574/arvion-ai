@@ -77,9 +77,14 @@ class FAISSVectorStore(BaseVectorStore):
         self.documents = []
         logger.info(f"[FAISSStore] Cleared index for {self.university_id}")
 
-# Factory for future-proofing
+# Memoization of store instances to allow cross-request caching in the same container
+_stores: Dict[str, BaseVectorStore] = {}
+
 def get_vector_store(university_id: str, store_type: str = "faiss") -> BaseVectorStore:
-    if store_type == "faiss":
-        return FAISSVectorStore(university_id)
-    # Future: if store_type == "pinecone": return PineconeVectorStore(...)
-    raise ValueError(f"Unknown vector store type: {store_type}")
+    """Returns a memoized vector store instance for this university."""
+    if university_id not in _stores:
+        if store_type == "faiss":
+            _stores[university_id] = FAISSVectorStore(university_id)
+        else:
+            raise ValueError(f"Unknown vector store type: {store_type}")
+    return _stores[university_id]

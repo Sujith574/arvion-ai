@@ -101,6 +101,13 @@ async def get_embedding(text: str) -> np.ndarray:
         return await loop.run_in_executor(_executor, lambda: model.encode(text, normalize_embeddings=True))
     return np.zeros(768)
 
+def invalidate_cache(university_id: str):
+    """Signal that the knowledge base has changed; clear in-memory vector store."""
+    store = get_vector_store(university_id)
+    if store:
+        store.clear()
+    logger.info(f"[RAG] Cache invalidated for {university_id}")
+
 class RAGService:
     def __init__(self, university_id: str):
         self.university_id = university_id
