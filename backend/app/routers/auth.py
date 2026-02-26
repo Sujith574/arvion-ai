@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
-from app.services.auth_service import hash_password, verify_password, create_access_token
+from app.services.auth_service import hash_password, verify_password, create_access_token, get_current_user
 from app.services.firebase import get_db
 from app.services.email_service import send_otp_email, generate_otp
 from firebase_admin import firestore
@@ -217,3 +217,17 @@ async def reset_password(body: ResetPasswordRequest):
     })
 
     return {"message": "Password reset successfully. You can now login with your new password."}
+    
+
+@router.delete("/me")
+async def delete_me(user: dict = Depends(get_current_user)):
+    """Permanently delete the logged-in user's account."""
+    db = get_db()
+    
+    # Delete the user document
+    db.collection("users").document(user["id"]).delete()
+    
+    # Optional: Log the deletion
+    print(f"[Auth] User deleted account: {user['email']} (ID: {user['id']})")
+    
+    return {"message": "Account deleted successfully. We're sorry to see you go."}

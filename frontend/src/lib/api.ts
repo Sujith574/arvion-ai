@@ -143,6 +143,14 @@ export async function authResetPassword(data: {
     return handleResponse(res);
 }
 
+export async function deleteAccount(token: string): Promise<{ message: string }> {
+    const res = await fetch(`${API_BASE}/api/auth/me`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+    });
+    return handleResponse(res);
+}
+
 // ── Universities API ───────────────────────────────────────────
 export async function getUniversities(): Promise<{ universities: University[] }> {
     const res = await fetch(`${API_BASE}/api/universities/`);

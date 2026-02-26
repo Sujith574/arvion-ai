@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
+import { deleteAccount } from "@/lib/api";
 import PWAInstallButton from "@/components/PWAInstallButton";
 
 // ── Icons (inline SVG to avoid extra deps) ────────────────────
@@ -54,11 +55,19 @@ const LogoutIcon = () => (
     </svg>
 );
 
+const TrashIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+);
+
 export default function Navbar() {
     const { theme, toggleTheme, isAuthenticated, displayName, role, logout } = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -80,6 +89,23 @@ export default function Navbar() {
         router.replace("/auth/login");
         setShowLogoutModal(false);
         setMenuOpen(false);
+    };
+
+    const handleDeleteAccount = async () => {
+        const token = useStore.getState().token;
+        if (!token) return;
+        setDeleting(true);
+        try {
+            await deleteAccount(token);
+            logout();
+            router.replace("/");
+            setShowDeleteModal(false);
+            alert("Your account has been permanently deleted.");
+        } catch (err: any) {
+            alert(`Error: ${err.message}`);
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const navLinks = [
@@ -227,6 +253,13 @@ export default function Navbar() {
                                     >
                                         Logout
                                     </button>
+                                    <button
+                                        onClick={() => setShowDeleteModal(true)}
+                                        style={{ background: "transparent", border: "none", color: "#64748b", padding: "0.4rem", cursor: "pointer", borderRadius: "8px", display: "flex", alignItems: "center" }}
+                                        title="Account Settings"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+                                    </button>
                                 </>
                             ) : (
                                 <>
@@ -321,10 +354,10 @@ export default function Navbar() {
                                         width: "100%",
                                         padding: "0.75rem",
                                         borderRadius: "10px",
-                                        border: "1.5px solid #fecaca",
-                                        background: "#fff1f2",
-                                        color: "#be123c",
-                                        fontWeight: 700,
+                                        border: "1px solid var(--border)",
+                                        background: "var(--surface)",
+                                        color: "var(--text-primary)",
+                                        fontWeight: 600,
                                         fontSize: "0.9375rem",
                                         cursor: "pointer",
                                         marginTop: "0.25rem",
@@ -332,6 +365,27 @@ export default function Navbar() {
                                 >
                                     <LogoutIcon />
                                     Logout
+                                </button>
+                                <button
+                                    onClick={() => { setMenuOpen(false); setShowDeleteModal(true); }}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                        width: "100%",
+                                        padding: "0.75rem",
+                                        borderRadius: "10px",
+                                        border: "1px solid #fecaca",
+                                        background: "#fff1f2",
+                                        color: "#be123c",
+                                        fontWeight: 700,
+                                        fontSize: "0.9375rem",
+                                        cursor: "pointer",
+                                        marginTop: "0.5rem",
+                                    }}
+                                >
+                                    <TrashIcon />
+                                    Delete Account
                                 </button>
                             </>
                         )}
@@ -434,6 +488,98 @@ export default function Navbar() {
                             to { opacity: 1; transform: scale(1) translateY(0); }
                         }
                     `}</style>
+                </div>
+            )}
+
+            {/* ── Delete Account Modal ───────────────────────── */}
+            {showDeleteModal && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        background: "rgba(0, 0, 0, 0.7)",
+                        zIndex: 200,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "1.5rem",
+                        backdropFilter: "blur(6px)",
+                    }}
+                    onClick={(e) => { if (e.target === e.currentTarget && !deleting) setShowDeleteModal(false); }}
+                >
+                    <div
+                        style={{
+                            background: "var(--surface)",
+                            borderRadius: "24px",
+                            padding: "2.5rem 2rem",
+                            maxWidth: "400px",
+                            width: "100%",
+                            textAlign: "center",
+                            border: "1px solid #fecaca",
+                            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+                            animation: "modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        }}
+                    >
+                        <div style={{
+                            width: "64px",
+                            height: "64px",
+                            borderRadius: "20px",
+                            background: "#fff1f2",
+                            border: "1.5px solid #fecaca",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            margin: "0 auto 1.5rem",
+                            color: "#be123c",
+                        }}>
+                            <TrashIcon />
+                        </div>
+
+                        <h3 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.75rem", color: "var(--text-primary)" }}>
+                            Delete Account?
+                        </h3>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "0.9375rem", lineHeight: 1.6, marginBottom: "2rem" }}>
+                            This action is <strong>irreversible</strong>. Your profile, bookmarks, and account data will be permanently removed. You can recreate your account later if you wish.
+                        </p>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                            <button
+                                disabled={deleting}
+                                onClick={handleDeleteAccount}
+                                style={{
+                                    width: "100%",
+                                    padding: "0.875rem",
+                                    borderRadius: "12px",
+                                    border: "none",
+                                    background: "#be123c",
+                                    color: "white",
+                                    fontWeight: 700,
+                                    fontSize: "1rem",
+                                    cursor: deleting ? "not-allowed" : "pointer",
+                                    boxShadow: "0 4px 12px rgba(190, 18, 60, 0.3)",
+                                }}
+                            >
+                                {deleting ? "Deleting Account..." : "Yes, Delete Permanently"}
+                            </button>
+                            <button
+                                disabled={deleting}
+                                onClick={() => setShowDeleteModal(false)}
+                                style={{
+                                    width: "100%",
+                                    padding: "0.875rem",
+                                    borderRadius: "12px",
+                                    border: "1.5px solid var(--border)",
+                                    background: "transparent",
+                                    color: "var(--text-secondary)",
+                                    fontWeight: 600,
+                                    fontSize: "0.9375rem",
+                                    cursor: deleting ? "not-allowed" : "pointer",
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
