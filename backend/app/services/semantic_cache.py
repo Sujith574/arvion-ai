@@ -27,7 +27,6 @@ class SemanticCache:
         docs = (
             db.collection(self.collection)
             .where("university_id", "==", self.university_id)
-            .order_by("timestamp", direction="DESCENDING")
             .limit(100)
             .stream()
         )
