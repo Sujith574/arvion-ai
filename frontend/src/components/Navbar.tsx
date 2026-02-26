@@ -482,12 +482,6 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    <style>{`
-                        @keyframes modalIn {
-                            from { opacity: 0; transform: scale(0.92) translateY(16px); }
-                            to { opacity: 1; transform: scale(1) translateY(0); }
-                        }
-                    `}</style>
                 </div>
             )}
 
@@ -588,6 +582,10 @@ export default function Navbar() {
           .desktop-nav { display: none !important; }
           .desktop-auth { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
+        }
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.92) translateY(16px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
         </>
