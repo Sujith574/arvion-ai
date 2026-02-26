@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from pydantic import BaseModel, field_validator
@@ -10,7 +10,6 @@ import re
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
-
 
 class ChatRequest(BaseModel):
     university_slug: str
@@ -43,10 +42,9 @@ class FeedbackRequest(BaseModel):
     university_slug: str
     comment: str | None = None
 
-
 @router.post("/message")
 @limiter.limit("20/minute")
-async def chat_message(request: Request, body: ChatRequest):
+async def chat_message(request: Request, body: ChatRequest, background_tasks: BackgroundTasks):
     university = await get_university(body.university_slug)
     if not university or not university.get("active", False):
         raise HTTPException(404, "University not found or inactive")
@@ -60,7 +58,10 @@ async def chat_message(request: Request, body: ChatRequest):
         user_id=body.user_id or "anonymous",
     )
 
-    query_id = await log_query({
+    query_id = str(uuid.uuid4())
+    # Log query and store feedback asynchronously to improve response time
+    background_tasks.add_task(log_query, {
+        "id": query_id,
         "session_id": body.session_id or str(uuid.uuid4()),
         "university_id": body.university_slug,
         "user_id": body.user_id,
@@ -82,9 +83,9 @@ async def chat_message(request: Request, body: ChatRequest):
 
 
 @router.post("/feedback")
-async def chat_feedback(body: FeedbackRequest):
+async def chat_feedback(body: FeedbackRequest, background_tasks: BackgroundTasks):
     """Store user feedback (thumbs up/down) for a specific query."""
-    await store_feedback({
+    background_tasks.add_task(store_feedback, {
         "query_id": body.query_id,
         "rating": body.rating,
         "comment": body.comment,

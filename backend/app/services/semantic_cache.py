@@ -36,7 +36,9 @@ class SemanticCache:
 
         for doc in docs:
             data = doc.to_dict()
-            cached_vector = np.array(data.get("vector"), dtype="float32")
+            v_list = data.get("vector")
+            if not v_list: continue
+            cached_vector = np.array(v_list, dtype="float32")
             
             # Simple Cosine Similarity (vectors are normalized)
             score = np.dot(query_vector, cached_vector)
@@ -71,6 +73,25 @@ class SemanticCache:
             db.collection(self.collection).add(cache_data)
         except Exception as e:
             logger.error(f"[Cache] Store failed: {e}")
+
+    async def clear(self):
+        """Delete all cache entries for this university."""
+        try:
+            db = get_db()
+            docs = db.collection(self.collection).where("university_id", "==", self.university_id).stream()
+            count = 0
+            batch = db.batch()
+            for doc in docs:
+                batch.delete(doc.reference)
+                count += 1
+                if count % 400 == 0:
+                    batch.commit()
+                    batch = db.batch()
+            if count % 400 != 0:
+                batch.commit()
+            logger.info(f"[Cache] Cleared {count} entries for {self.university_id}")
+        except Exception as e:
+            logger.error(f"[Cache] Clear failed: {e}")
 
 _cache_instances: Dict[str, SemanticCache] = {}
 

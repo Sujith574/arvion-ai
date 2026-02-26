@@ -138,16 +138,26 @@ async def delete_all_entries(university_slug: str, _=Depends(require_admin)):
     col = db.collection("university_knowledge")
 
     loop = asyncio.get_event_loop()
-    def _delete():
+    async def _delete():
         existing = list(col.where("university_id", "==", university_slug).stream())
+        count = 0
+        batch = db.batch()
         for doc in existing:
-            doc.reference.delete()
+            batch.delete(doc.reference)
+            count += 1
+            if count % 400 == 0:
+                batch.commit()
+                batch = db.batch()
+        
+        if count % 400 != 0:
+            batch.commit()
+            
         db.collection("universities").document(university_slug).update({"uploaded_files": []})
-        return len(existing)
+        return count
 
-    count = await loop.run_in_executor(None, _delete)
+    count = await loop.run_in_executor(None, lambda: asyncio.run(_delete()))
     invalidate_cache(university_slug)
-    return {"message": f"Deleted {count} knowledge entries for '{university_slug}'.", "count": count}
+    return {"message": f"Successfully deleted {count} knowledge entries for '{university_slug}'.", "count": count}
 
 
 @router.post("/reindex/{university_slug}")

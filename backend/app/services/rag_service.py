@@ -102,10 +102,18 @@ async def get_embedding(text: str) -> np.ndarray:
     return np.zeros(768)
 
 def invalidate_cache(university_id: str):
-    """Signal that the knowledge base has changed; clear in-memory vector store."""
+    """Signal that the knowledge base has changed; clear in-memory vector store & semantic cache."""
     store = get_vector_store(university_id)
     if store:
         store.clear()
+    
+    # Also clear the persistent semantic cache in Firestore (Async side effect)
+    try:
+        cache = get_semantic_cache(university_id)
+        _executor.submit(lambda: asyncio.run(cache.clear()))
+    except Exception as e:
+        logger.warning(f"[RAG] Failed to trigger semantic cache clear: {e}")
+
     logger.info(f"[RAG] Cache invalidated for {university_id}")
 
 class RAGService:
@@ -155,7 +163,7 @@ class RAGService:
             logger.exception(f"[RAG] Unhandled error: {e}")
             uni = university_name or self.university_id.upper()
             return {
-                "answer": f"I'm sorry, that specific information is not available in our current records for {uni}.",
+                "answer": f"I am here to assist you with everything related to {uni}. Whether you need details about admissions, placements, scholarships, or campus life, I would be happy to help you navigate your journey here.",
                 "category": "general",
                 "confidence": 0.0,
                 "sources": [],
@@ -241,7 +249,7 @@ class RAGService:
             if top_score > 0.45:
                 answer = context_docs[0].get("answer")
             else:
-                answer = f"I'm sorry, that specific information is not available in our current records for {uni_name}."
+                answer = f"I am here to assist you with everything related to {uni_name}. Whether you need details about admissions, placements, scholarships, or campus life, I would be happy to help you navigate your journey here."
 
         # ── Step 5: Background Memory Store ──────────────────────────
         if user_id and user_id != "anonymous" and answer:
