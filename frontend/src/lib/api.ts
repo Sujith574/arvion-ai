@@ -155,14 +155,20 @@ export async function getUniversity(slug: string): Promise<{ university: Univers
 }
 
 export async function requestUniversity(data: {
-    university_name: string;
+    university_name?: string;
+    name?: string;
     email: string;
     contact_details?: string;
 }): Promise<{ message: string }> {
+    const payload = {
+        university_name: data.university_name || data.name || "Unknown University",
+        email: data.email,
+        message: data.contact_details || "",
+    };
     const res = await fetch(`${API_BASE}/api/universities/request`, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
     });
     return handleResponse(res);
 }

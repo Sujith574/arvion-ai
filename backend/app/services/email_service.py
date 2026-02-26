@@ -20,7 +20,11 @@ def generate_otp(length: int = 6) -> str:
 def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     """Send OTP email via Gmail SMTP. Returns True if successful."""
     if not settings.SMTP_FROM_EMAIL or not settings.SMTP_APP_PASSWORD:
-        logger.error("[Email] SMTP credentials not configured")
+        logger.error("[Email] SMTP credentials not configured (Missing in environment)")
+        return False
+        
+    if "your-email@gmail.com" in settings.SMTP_FROM_EMAIL or "YOUR_EMAIL_APP_PASSWORD" in settings.SMTP_APP_PASSWORD:
+        logger.error("[Email] SMTP credentials are still PLACEHOLDERS. Please update Secret Manager with real Gmail credentials.")
         return False
 
     if purpose == "reset":

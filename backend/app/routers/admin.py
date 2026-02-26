@@ -8,7 +8,9 @@ All routes protected by require_admin dependency.
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.firebase import get_db
 from app.dependencies import require_admin
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 

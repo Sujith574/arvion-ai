@@ -86,8 +86,9 @@ export default function UniversityTab({ token }: { token: string }) {
                                     </button>
                                 </div>
                                 <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
-                                    <div><strong>Requested by:</strong> {req.requested_by}</div>
-                                    <div style={{ marginTop: "0.25rem" }}><strong>Date:</strong> {new Date(req.created_at).toLocaleDateString()}</div>
+                                    <div><strong>Requested by:</strong> {req.requester_name || "Anonymous"}</div>
+                                    <div><strong>Contact:</strong> {req.requester_email || "N/A"}</div>
+                                    <div style={{ marginTop: "0.25rem" }}><strong>Date:</strong> {req.created_at ? new Date(req.created_at).toLocaleDateString() : "Pending"}</div>
                                 </div>
                             </div>
                         ))}
