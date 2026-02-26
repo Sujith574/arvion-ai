@@ -80,13 +80,13 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup") -> bool:
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"Arvix AI <{settings.SMTP_FROM_EMAIL}>"
+        msg["From"] = f"Arvix AI <{settings.SMTP_FROM_EMAIL.strip()}>"
         msg["To"] = to_email
         msg.attach(MIMEText(html_body, "html"))
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(settings.SMTP_FROM_EMAIL, settings.SMTP_APP_PASSWORD)
-            server.sendmail(settings.SMTP_FROM_EMAIL, to_email, msg.as_string())
+            server.login(settings.SMTP_FROM_EMAIL.strip(), settings.SMTP_APP_PASSWORD.strip())
+            server.sendmail(settings.SMTP_FROM_EMAIL.strip(), to_email, msg.as_string())
 
         logger.info(f"[Email] OTP sent to {to_email} for purpose={purpose}")
         return True

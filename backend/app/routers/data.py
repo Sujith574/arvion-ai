@@ -14,7 +14,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from app.services.firebase import get_db
+from app.services.firebase import get_db, invalidate_universities_cache
 from app.services.rag_service import invalidate_cache
 from app.services.data_ingestion import ingest_file
 from app.dependencies import require_admin

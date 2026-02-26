@@ -43,7 +43,7 @@ steps:
       - '--set-env-vars'
       - 'FIREBASE_PROJECT_ID=arvion-241094'
       - '--set-env-vars'
-      - 'FRONTEND_URL=https://arvion-frontend-noaidrnbfa-uc.a.run.app'
+      - 'FRONTEND_URL=https://arvion-frontend-348624065149.us-central1.run.app'
       - '--set-env-vars'
       - 'PROLIXIS_BASE_URL=https://api.prolixis.ai/v1'
       - '--set-secrets'
@@ -66,7 +66,7 @@ steps:
     args: 
       - 'build'
       - '--build-arg'
-      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-noaidrnbfa-uc.a.run.app'
+      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-348624065149.us-central1.run.app'
       - '-t'
       - 'us-central1-docker.pkg.dev/$PROJECT_ID/arvion-repo/frontend:latest'
       - './frontend'
@@ -99,7 +99,7 @@ steps:
       - '3000'
       # Ensuring the frontend has context of the live backend API
       - '--set-env-vars'
-      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-noaidrnbfa-uc.a.run.app'
+      - 'NEXT_PUBLIC_API_URL=https://arvion-backend-348624065149.us-central1.run.app'
     id: 'Deploy Frontend'
 
 images:
