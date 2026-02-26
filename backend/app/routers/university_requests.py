@@ -9,10 +9,10 @@ router = APIRouter()
 
 class UniversityRequestModel(BaseModel):
     university_name: str
-    university_location: str
-    requester_name: str
-    requester_email: EmailStr
-    requester_role: str = "student"  # student | parent | faculty | admin
+    university_location: str | None = "Unknown"
+    requester_name: str | None = "Anonymous"
+    email: EmailStr  # Sync with frontend field name
+    requester_role: str = "potential_user"
     message: str = ""
 
 
@@ -21,8 +21,6 @@ async def request_university(body: UniversityRequestModel):
     """Store a user request to onboard a new university."""
     if len(body.university_name.strip()) < 3:
         raise HTTPException(400, "University name must be at least 3 characters.")
-    if len(body.requester_name.strip()) < 2:
-        raise HTTPException(400, "Please provide your full name.")
 
     db = get_db()
     req_id = str(uuid.uuid4())
@@ -30,9 +28,9 @@ async def request_university(body: UniversityRequestModel):
     db.collection("university_requests").document(req_id).set({
         "id": req_id,
         "university_name": body.university_name.strip(),
-        "university_location": body.university_location.strip(),
-        "requester_name": body.requester_name.strip(),
-        "requester_email": body.requester_email,
+        "university_location": body.university_location.strip() if body.university_location else "Unknown",
+        "requester_name": body.requester_name.strip() if body.requester_name else "Anonymous",
+        "requester_email": body.email,
         "requester_role": body.requester_role,
         "message": body.message.strip(),
         "status": "pending",
@@ -41,7 +39,7 @@ async def request_university(body: UniversityRequestModel):
 
     return {
         "success": True,
-        "message": f"Thank you! Your request for '{body.university_name}' has been received. Our team will review it shortly.",
+        "message": f"Successfully received request for '{body.university_name}'. We'll keep you updated!",
         "request_id": req_id,
     }
 

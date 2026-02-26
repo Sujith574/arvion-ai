@@ -16,39 +16,47 @@ router = APIRouter()
 async def admin_stats(university_slug: str, _=Depends(require_admin)):
     """
     Return dashboard stats for a university admin.
-    Includes: total queries, avg confidence, fallback rate, low-confidence count.
+    Optimized: Limits scan to 2k queries + uses select() for speed.
     """
     db = get_db()
-    logs = list(
+    logs_stream = (
         db.collection("query_logs")
         .where("university_id", "==", university_slug)
+        .order_by("timestamp", direction="DESCENDING")
+        .limit(2000)
+        .select(["confidence_score", "used_fallback_llm", "category"])
         .stream()
     )
 
+    logs = list(logs_stream)
     if not logs:
         return {
-            "total_queries": 0,
-            "avg_confidence": 0,
-            "fallback_rate": 0,
-            "low_confidence_count": 0,
+            "total_queries": 0, "avg_confidence": 0,
+            "fallback_rate": 0, "low_confidence_count": 0,
             "categories": {},
         }
 
-    data = [log.to_dict() for log in logs]
-    total = len(data)
-    fallbacks = sum(1 for d in data if d.get("used_fallback_llm"))
-    confidences = [d.get("confidence_score", 0) for d in data]
-    low_conf = sum(1 for c in confidences if c < 0.5)
-
-    # Category breakdown
+    total = len(logs)
+    fallbacks = 0
+    conf_sum = 0
+    low_conf = 0
     categories: dict = {}
-    for d in data:
+
+    for doc in logs:
+        d = doc.to_dict()
+        conf = d.get("confidence_score", 0)
+        conf_sum += conf
+        if d.get("used_fallback_llm"):
+            fallbacks += 1
+        if conf < 0.5:
+            low_conf += 1
+        
         cat = d.get("category", "unknown")
         categories[cat] = categories.get(cat, 0) + 1
 
     return {
         "total_queries": total,
-        "avg_confidence": round(sum(confidences) / total, 3) if total else 0,
+        "avg_confidence": round(conf_sum / total, 3) if total else 0,
         "fallback_rate": round(fallbacks / total * 100, 1) if total else 0,
         "low_confidence_count": low_conf,
         "categories": categories,
@@ -148,7 +156,7 @@ class CreateUniversityRequest(BaseModel):
 async def create_university(req: CreateUniversityRequest, _=Depends(require_admin)):
     """Super admin: directly create a new university."""
     db = get_db()
-    slug = req.slug.lower()
+    slug = req.slug.lower().strip()
     doc_ref = db.collection("universities").document(slug)
     
     if doc_ref.get().exists:
@@ -163,6 +171,10 @@ async def create_university(req: CreateUniversityRequest, _=Depends(require_admi
         "confidence_threshold": 0.75,
         "created_at": __import__("datetime").datetime.utcnow().isoformat(),
     })
+    
+    from app.services.firebase import invalidate_universities_cache
+    invalidate_universities_cache()
+    
     return {"message": f"University '{slug}' created", "slug": slug}
 
 
@@ -187,27 +199,47 @@ async def update_university(slug: str, req: UpdateUniversityRequest, _=Depends(r
     updates = {k: v for k, v in req.dict().items() if v is not None}
     updates["updated_at"] = __import__("datetime").datetime.utcnow().isoformat()
     doc_ref.update(updates)
+    
+    from app.services.firebase import invalidate_universities_cache
+    invalidate_universities_cache(slug)
+    
     return {"message": f"University '{slug}' updated", "updates": list(updates.keys())}
 
 
 @router.delete("/universities/{slug}")
 async def delete_university(slug: str, _=Depends(require_admin)):
-    """Admin: delete a university and ALL of its knowledge entries."""
+    """Admin: delete a university and ALL its data across collections using batches."""
     db = get_db()
-    doc_ref = db.collection("universities").document(slug)
-    if not doc_ref.get().exists:
-        raise HTTPException(404, "University not found")
+    
+    def _bulk_delete(collection_name: str, field: str, value: str):
+        count = 0
+        col = db.collection(collection_name)
+        docs = list(col.where(field, "==", value).select([]).stream())
+        batch = db.batch()
+        for doc in docs:
+            batch.delete(doc.reference)
+            count += 1
+            if count % 400 == 0:
+                batch.commit()
+                batch = db.batch()
+        if count % 400 != 0:
+            batch.commit()
+        return count
 
-    # Delete all knowledge entries
-    kb = list(db.collection("university_knowledge").where("university_id", "==", slug).stream())
-    for d in kb:
-        d.reference.delete()
+    # 1. Delete knowledge
+    kb_count = _bulk_delete("university_knowledge", "university_id", slug)
+    
+    # 2. Delete logs
+    logger.info(f"[Delete] Cleaning up logs for {slug}...")
+    _bulk_delete("query_logs", "university_id", slug)
+    
+    # 3. Delete feedback
+    _bulk_delete("query_feedback", "university_id", slug)
 
-    # Delete query logs
-    logs = list(db.collection("query_logs").where("university_id", "==", slug).stream())
-    for d in logs:
-        d.reference.delete()
-
-    # Delete the university doc
-    doc_ref.delete()
-    return {"message": f"University '{slug}' and {len(kb)} knowledge entries deleted"}
+    # 4. Delete the university doc
+    db.collection("universities").document(slug).delete()
+    
+    from app.services.firebase import invalidate_universities_cache
+    invalidate_universities_cache(slug)
+    
+    return {"message": f"University '{slug}' and {kb_count} knowledge entries deleted permanently."}

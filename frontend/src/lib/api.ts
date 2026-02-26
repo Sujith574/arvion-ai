@@ -61,7 +61,24 @@ function getHeaders(token?: string): HeadersInit {
 async function handleResponse<T>(res: Response): Promise<T> {
     if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail || `HTTP ${res.status}`);
+
+        let message = "An error occurred";
+        if (typeof err.detail === "string") {
+            message = err.detail;
+        } else if (Array.isArray(err.detail)) {
+            // Handle Pydantic validation errors
+            message = err.detail.map((d: any) => d.msg || d.message || JSON.stringify(d)).join(", ");
+        } else if (err.detail && typeof err.detail === "object") {
+            message = err.detail.message || err.detail.error || JSON.stringify(err.detail);
+        } else if (err.message) {
+            message = err.message;
+        } else if (err.error) {
+            message = err.error;
+        } else {
+            message = `HTTP ${res.status}: ${res.statusText}`;
+        }
+
+        throw new Error(message);
     }
     return res.json();
 }

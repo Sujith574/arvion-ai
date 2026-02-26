@@ -11,7 +11,6 @@ import UniversityTab from "@/components/admin/UniversityTab";
 import DataTab from "@/components/admin/DataTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
 
-const UNI_SLUG = "lpu"; // In production, derive from admin's university_id
 
 const icons = {
     query: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>,
@@ -30,7 +29,12 @@ interface Stats {
 
 export default function AdminDashboard() {
     const router = useRouter();
-    const { token, role, isAuthenticated } = useStore();
+    const { token, role, universityId, isAuthenticated } = useStore();
+
+    // Determine which university to show
+    // For university_admins, it should be their assigned universityId
+    // For super_admins, it could be a selector (defaulting to lpu for now)
+    const activeSlug = role === "super_admin" ? "lpu" : (universityId || "lpu");
 
     // We can define a simplified user check instead of getting user from the store, 
     // since role is already present
@@ -52,15 +56,18 @@ export default function AdminDashboard() {
             return;
         }
 
+        setLoading(true);
         Promise.all([
-            getAdminStats(UNI_SLUG, token!),
-            getQueryLogs(UNI_SLUG, token!, 20),
+            getAdminStats(activeSlug, token!),
+            getQueryLogs(activeSlug, token!, 20),
         ])
             .then(([statsRes, logsRes]) => {
                 setStats(statsRes);
-                setLogs(logsRes.logs);
+                setLogs(logsRes.logs || []);
             })
-            .catch(() => {
+            .catch((err) => {
+                console.error("Dashboard error:", err);
+                setError("Failed to load live metrics. Showing demo data.");
                 // Demo fallback for display
                 setStats({
                     total_queries: 1247,
@@ -72,12 +79,11 @@ export default function AdminDashboard() {
                 setLogs([
                     { id: "1", query: "What is the fee for B.Tech CSE?", response: "The fee for B.Tech CSE at LPU is approximately ₹1.6L per year...", confidence_score: 0.91, category: "fees", timestamp: new Date().toISOString(), used_fallback_llm: false },
                     { id: "2", query: "How to apply for hostel?", response: "You can apply for hostel through the student portal...", confidence_score: 0.88, category: "hostel", timestamp: new Date().toISOString(), used_fallback_llm: false },
-                    { id: "3", query: "What are the scholarship options?", response: "LPU offers merit-based scholarships...", confidence_score: 0.72, category: "scholarships", timestamp: new Date().toISOString(), used_fallback_llm: true },
                 ]);
             })
             .finally(() => setLoading(false));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [activeSlug, isAuthenticated]);
 
     const chartData = stats
         ? Object.entries(stats.categories).map(([cat, count]) => ({ name: cat, count }))
@@ -304,7 +310,7 @@ export default function AdminDashboard() {
                     )}
 
                     {/* ── Knowledge Base ─────────────────────────── */}
-                    {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={UNI_SLUG} />}
+                    {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={activeSlug} />}
 
                     {/* ── Approvals ─────────────────────────────── */}
                     {activeTab === "university" && <UniversityTab token={token!} />}
@@ -313,7 +319,7 @@ export default function AdminDashboard() {
                     {activeTab === "data" && <DataTab token={token!} />}
 
                     {/* ── Feedback ────────────────────────────────── */}
-                    {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={UNI_SLUG} />}
+                    {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={activeSlug} />}
                 </div>
             </main>
 

@@ -117,12 +117,15 @@ async def list_data_files(university_slug: str, _=Depends(require_admin)):
         raise HTTPException(404, "University not found")
     data = uni_doc.to_dict()
 
-    # Count entries in background thread
+    # Optimized Count: Use select() to minimize data transfer
     loop = asyncio.get_event_loop()
-    entries_count = await loop.run_in_executor(
-        None,
-        lambda: len(list(db.collection("university_knowledge").where("university_id", "==", university_slug).stream()))
-    )
+    def _count():
+        return len(list(db.collection("university_knowledge")
+                       .where("university_id", "==", university_slug)
+                       .select(["question"])  # Only fetch one field
+                       .stream()))
+
+    entries_count = await loop.run_in_executor(None, _count)
 
     return {
         "university": university_slug,
@@ -134,15 +137,22 @@ async def list_data_files(university_slug: str, _=Depends(require_admin)):
 @router.delete("/entries/{university_slug}")
 async def delete_all_entries(university_slug: str, _=Depends(require_admin)):
     """Delete ALL knowledge entries for a university (keeps the university profile)."""
-    db = get_db()
-    col = db.collection("university_knowledge")
-
     loop = asyncio.get_event_loop()
-    async def _delete():
-        existing = list(col.where("university_id", "==", university_slug).stream())
+
+    def _do_delete():
+        # Re-initialize db inside thread for safety
+        db = get_db()
+        col = db.collection("university_knowledge")
+        
+        # Synchronous fetch
+        docs = list(col.where("university_id", "==", university_slug).select(["question"]).stream())
+        if not docs:
+            logger.warning(f"[Delete] No entries found for {university_slug}")
+            return 0
+            
         count = 0
         batch = db.batch()
-        for doc in existing:
+        for doc in docs:
             batch.delete(doc.reference)
             count += 1
             if count % 400 == 0:
@@ -152,12 +162,22 @@ async def delete_all_entries(university_slug: str, _=Depends(require_admin)):
         if count % 400 != 0:
             batch.commit()
             
+        # Clear file history in university profile
         db.collection("universities").document(university_slug).update({"uploaded_files": []})
         return count
 
-    count = await loop.run_in_executor(None, lambda: asyncio.run(_delete()))
+    # Run blocking Firestore ops in executor
+    count = await loop.run_in_executor(None, _do_delete)
+    
+    # Invalidate both in-memory and persistent vector caches
     invalidate_cache(university_slug)
-    return {"message": f"Successfully deleted {count} knowledge entries for '{university_slug}'.", "count": count}
+    # Force bust university list cache so admin sees 0 immediately
+    invalidate_universities_cache(university_slug)
+    
+    return {
+        "message": f"Successfully deleted {count} knowledge entries for '{university_slug}'.",
+        "count": count
+    }
 
 
 @router.post("/reindex/{university_slug}")

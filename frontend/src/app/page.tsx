@@ -505,32 +505,50 @@ export default function HomePage() {
                     <button onClick={() => setReqMode(true)} className="btn-secondary" style={{ fontSize: "0.875rem", padding: "0.6rem 1.25rem", cursor: "pointer", border: "none" }}>Request University</button>
                   </>
                 ) : (
-                  <form onSubmit={handleRequest} style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%", alignItems: "stretch", textAlign: "left" }}>
-                    <h3 style={{ fontWeight: 700, textAlign: "center" }}>Request University</h3>
+                  <form onSubmit={handleRequest} style={{ display: "flex", flexDirection: "column", gap: "0.875rem", width: "100%", alignItems: "stretch", textAlign: "left" }}>
+                    <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
+                      <h3 style={{ fontWeight: 800, fontSize: "1.125rem", color: "var(--text-primary)" }}>Request Your University</h3>
+                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>Onboarding takes ~48 hours.</p>
+                    </div>
+
                     {reqStatus && (
-                      <div style={{ fontSize: "0.8rem", textAlign: "center", color: reqStatus.includes("Error") ? "#ef4444" : "#10b981", fontWeight: 600 }}>
+                      <div style={{
+                        padding: "0.625rem", borderRadius: "8px", fontSize: "0.8125rem", textAlign: "center",
+                        background: reqStatus.includes("Error") ? "#fef2f2" : "#f0fdf4",
+                        color: reqStatus.includes("Error") ? "#dc2626" : "#16a34a",
+                        fontWeight: 600, border: `1px solid ${reqStatus.includes("Error") ? "#fecaca" : "#bbf7d0"}`
+                      }}>
                         {reqStatus}
                       </div>
                     )}
-                    <input
-                      type="text"
-                      placeholder="University Name"
-                      required
-                      value={reqForm.name}
-                      onChange={(e) => setReqForm({ ...reqForm, name: e.target.value })}
-                      style={{ padding: "0.625rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }}
-                    />
-                    <input
-                      type="email"
-                      placeholder="Your Email"
-                      required
-                      value={reqForm.email}
-                      onChange={(e) => setReqForm({ ...reqForm, email: e.target.value })}
-                      style={{ padding: "0.625rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-subtle)", color: "var(--text-primary)" }}
-                    />
-                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
-                      <button type="button" onClick={() => setReqMode(false)} className="btn-ghost" style={{ flex: 1, padding: "0.625rem", fontSize: "0.875rem" }}>Cancel</button>
-                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: "0.625rem", fontSize: "0.875rem", border: "none" }}>Submit</button>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-secondary)", marginLeft: "2px" }}>UNIVERSITY NAME</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Stanford University"
+                        required
+                        value={reqForm.name}
+                        onChange={(e) => setReqForm({ ...reqForm, name: e.target.value })}
+                        style={{ padding: "0.75rem", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize: "0.875rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-secondary)", marginLeft: "2px" }}>YOUR EMAIL</label>
+                      <input
+                        type="email"
+                        placeholder="you@email.com"
+                        required
+                        value={reqForm.email}
+                        onChange={(e) => setReqForm({ ...reqForm, email: e.target.value })}
+                        style={{ padding: "0.75rem", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize: "0.875rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+                      <button type="button" onClick={() => setReqMode(false)} className="btn-secondary" style={{ flex: 1, padding: "0.75rem", fontSize: "0.875rem", background: "transparent", color: "var(--text-secondary)" }}>Cancel</button>
+                      <button type="submit" className="btn-primary" style={{ flex: 1, padding: "0.75rem", fontSize: "0.875rem", border: "none" }}>Submit Request</button>
                     </div>
                   </form>
                 )}
