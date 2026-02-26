@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
-from app.services.auth_service import hash_password, verify_password, create_access_token, get_current_user
+from app.services.auth_service import hash_password, verify_password, create_access_token
 from app.services.firebase import get_db
 from app.services.email_service import send_otp_email, generate_otp
+from app.dependencies import get_user
 from firebase_admin import firestore
 import uuid
 import asyncio
@@ -220,7 +221,7 @@ async def reset_password(body: ResetPasswordRequest):
     
 
 @router.delete("/me")
-async def delete_me(user: dict = Depends(get_current_user)):
+async def delete_me(user: dict = Depends(get_user)):
     """Permanently delete the logged-in user's account."""
     db = get_db()
     
