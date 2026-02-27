@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -19,7 +19,8 @@ def get_client_ip(request):
     """Custom key function to handle X-Forwarded-For correctly in production."""
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(",")[1].strip() if "," in forwarded else forwarded.strip()
+        # User is usually the first IP in the list
+        return forwarded.split(",")[0].strip()
     return get_remote_address(request)
 
 limiter = Limiter(key_func=get_client_ip)
@@ -40,17 +41,20 @@ app.add_middleware(SecurityMiddleware)
 # to ensure it handles preflight OPTIONS requests before any other logic.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://arvion-frontend-348624065149.us-central1.run.app",
-        "https://arvion-ai.web.app"
-    ],
-    allow_origin_regex=".*", # Keep as fallback
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"GLOBAL ERROR: {exc}", exc_info=True)
+    return Response(
+        content=f"Internal Server Error: {str(exc)}",
+        status_code=500,
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
 
 
 
