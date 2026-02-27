@@ -181,118 +181,74 @@ Firestore
 
 ---
 
-## 🔐 Security Architecture
+## 🔐 Security & Hardening (Enterprise Ready)
 
 | Layer | Implementation |
 |---|---|
 | **Passwords** | bcrypt hashed — never stored in plain text |
-| **Authentication** | JWT tokens, 24h expiry, role embedded in payload |
+| **Authentication** | JWT tokens, **4h expiry** (shortened for safety), role embedded in payload |
+| **Credentials** | Support for **FIREBASE_SERVICE_ACCOUNT_JSON** (direct raw string) for secure Cloud Run env |
+| **API Docs** | **Swagger gated** — disabled in production (`IS_PROD=true`) to hide API surface |
 | **Authorization** | Server-side RBAC middleware on every protected route |
-| **University Isolation** | [verify_university_access()](file:///c:/Users/sujit/arvion-ai/backend/app/dependencies.py#30-37) checks user's `university_id` against request |
-| **OTP Flow** | 6-digit OTP, email-delivered, 10min expiry, one-time-use |
-| **Rate Limiting** | 20 requests/minute per IP (SlowAPI) |
-| **Password Reset** | OTP verification required — no direct reset without email access |
-| **Secrets** | All secrets in [.env](file:///c:/Users/sujit/arvion-ai/backend/.env) / Cloud Run environment variables — never in code |
-| **Super Admin** | Cannot be created through the API. Only via secure [init_super_admin.py](file:///c:/Users/sujit/arvion-ai/backend/app/scripts/init_super_admin.py) script |
+| **University Isolation** | `verify_university_access()` checks user's `university_id` against request |
+| **OTP Flow** | 6-digit OTP, email-delivered, 10min expiry, one-time-use verified tokens |
+| **Rate Limiting** | 20 requests/minute per IP — **X-Forwarded-For** aware for real client IP detection |
+| **Secrets** | All secrets in Cloud Run environment variables — never in code or image |
+| **Super Admin** | Cannot be created through the API. Only via secure initialization script |
 
 ---
 
-## ⚙️ Backend API — Routers
+## 🚀 AI Chatbot Architecture
 
-| Router | Prefix | Key Endpoints |
-|---|---|---|
-| [auth.py](file:///c:/Users/sujit/arvion-ai/backend/app/routers/auth.py) | `/api/auth` | `/send-otp`, `/verify-otp`, `/signup`, `/token`, `/reset-password`, `/me` |
-| [admin.py](file:///tmp/create_admin.py) | `/api/admin` | `/stats/{slug}`, `/logs/{slug}`, `/universities`, `/users`, `/university-requests` |
-| `cms.py` | `/api/cms` | `/{uni}/{section}`, `/admin/{uni}/{section}`, `/super-admin/pending`, `/approve`, `/reject` |
-| `chat.py` | `/api/chat` | `/message` (AI response), `/feedback` |
-| `universities.py` | `/api/universities` | List, get single university |
-| `data.py` | `/api/data` | Upload CSV/Excel, list files, delete entries |
-| `knowledge.py` | `/api/knowledge` | Knowledge base CRUD |
-| `emergency.py` | `/api/emergency` | Emergency contacts per university |
-| `university_requests.py` | `/api/universities` | `/request` (user submission) |
+### Dual-Threshold RAG Pipeline
+1. **Semantic Cache Lookup**: 96% similarity match returns instant result (0ms, $0 cost).
+2. **FAISS Search**: Scans approved university KB + CMS entries.
+3. **Cost Control Gate**:
+   - If confidence **< 35%** → Returns generic helpful message (Skips Gemini CALL = **$$ Savings**).
+   - If confidence **35% - 75%** → Fallback to Gemini with context.
+   - If confidence **> 75%** → Returns Knowledge Base answer directly.
+4. **Synthesis**: Gemini generates conversational answer using context + university identity.
 
----
-
-## 🖥️ Frontend — Page Structure
-
-| Route | What It Is |
-|---|---|
-| `/` | Home — university discovery, feature highlights |
-| `/university/[slug]` | University page + embedded AI chatbot |
-| `/university/[slug]/chat` | Full-screen dedicated chat interface |
-| `/auth/login` | Email + Password login |
-| `/auth/signup` | OTP-verified email signup |
-| `/auth/reset-password` | OTP email verification → set new password |
-| `/admin` | Admin Dashboard (protected — admins only) |
-| `/request-university` | Normal users submit university addition requests |
+### Data Persistence
+- **GCS Indexing**: FAISS indexes are persisted to **Google Cloud Storage**. This ensures all Cloud Run instances share the same validated knowledge base and recover instantly from cold starts.
 
 ---
 
-## 🚀 Tech Stack Summary
+## 📈 Scalability & Performance
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | Next.js 16, React, TypeScript, Zustand, Framer Motion |
-| **Backend** | FastAPI (Python), Uvicorn, SlowAPI |
-| **Database** | Firebase Firestore (NoSQL, real-time) |
-| **AI/Embeddings** | FAISS (local vector search), sentence-transformers |
-| **LLM Fallback** | Google Gemini AI |
-| **Authentication** | JWT (jose), bcrypt |
-| **Email** | Gmail SMTP (OTP delivery) |
-| **Infrastructure** | Google Cloud Run (containerized, auto-scaling) |
-| **CI/CD** | GitHub → `gcloud run deploy --source .` |
-| **Security** | CORS, GZip, Rate Limiting, Security Headers middleware |
+- **Multi-university SaaS**: Each university is completely isolated by `university_id`.
+- **GCS Persistence**: Vector indexes are saved/loaded from Cloud Storage bucket.
+- **Auto-scaling**: Cloud Run auto-scales to handle traffic spikes.
+- **Concurrent Safety**: `threading.Lock` and `ThreadPoolExecutor` ensure efficient resource use.
+- **TTL caching**: University list cached 2 minutes, avoiding cold Firestore reads.
+- **CMS Versioning**: Every entry tracks its version; audit logs capture every lifecycle event.
 
 ---
 
 ## 📋 Environment Variables (Backend)
 
 ```env
+# System
+IS_PROD=true
+CLOUD_STORAGE_BUCKET=arvion-faiss-indexes
+
 # Firebase
 FIREBASE_PROJECT_ID=arvion-241094
-FIREBASE_SERVICE_ACCOUNT_PATH=serviceAccountKey.json
+FIREBASE_SERVICE_ACCOUNT_JSON={"type": "service_account", ...}
 
 # JWT
 JWT_SECRET_KEY=<strong-secret>
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
+ACCESS_TOKEN_EXPIRE_MINUTES=240 # 4 Hours
 
 # AI
 GEMINI_API_KEY=<your-key>
-PROLIXIS_API_KEY=<your-key>
+MIN_CONFIDENCE_FOR_LLM=0.35
 
 # Email (OTP)
 SMTP_FROM_EMAIL=startupai241094@gmail.com
 SMTP_APP_PASSWORD=<app-password>
-
-# Embedding
-EMBEDDING_MODEL=/app/model_cache
-DEFAULT_CONFIDENCE_THRESHOLD=0.75
-RATE_LIMIT_PER_MINUTE=20
 ```
 
 ---
 
-## 🔑 Super Admin Access
-
-| Field | Value |
-|---|---|
-| **Email** | `startupai241094@gmail.com` |
-| **Password Setup** | Go to `/auth/reset-password` → enter email → verify OTP → set password |
-| **Role** | `super_admin` — hardcoded in DB, cannot be changed via API |
-
----
-
-## 📈 Scalability Design
-
-- **Multi-university SaaS**: Each university is completely isolated by `university_id`
-- **New universities**: Created from Admin Dashboard instantly — no code changes
-- **New CMS sections**: Added at runtime — schema is fully dynamic
-- **Auto-scaling**: Cloud Run scales to zero (cost-efficient) and up to handle traffic
-- **FAISS index**: Rebuilt per-university on first query, cached in memory for speed
-- **TTL caching**: University list cached 2 minutes, avoiding cold Firestore reads
-- **Semantic caching**: Similar queries return cached AI responses (cost + speed)
-
----
-
-*Last deployed: 2026-02-27 | Platform: Arvix AI v2.0 Enterprise*
+*Last deployed: 2026-02-27 | Platform: Arvix AI v2.1 Enterprise (Secure Build)*
