@@ -7,7 +7,7 @@
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
 let base = (envUrl && envUrl !== "undefined")
     ? envUrl
-    : "https://arvion-backend-348624065149.us-central1.run.app";
+    : "https://arvion-backend-noaidrnbfa-uc.a.run.app";
 
 // Normalize: remove trailing slash
 export const API_BASE = base.endsWith("/") ? base.slice(0, -1) : base;
