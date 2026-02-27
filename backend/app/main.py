@@ -43,12 +43,7 @@ app.add_middleware(SecurityMiddleware)
 # Dedicated CORS handles everything from local to prod
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://arvion-frontend-348624065149.us-central1.run.app",
-        "https://arvion-ai.web.app"
-    ],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
