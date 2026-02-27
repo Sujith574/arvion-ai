@@ -7,8 +7,11 @@ All routes protected by require_admin dependency.
 
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.firebase import get_db
-from app.dependencies import require_admin
+from app.dependencies import require_admin, require_super_admin
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -235,8 +238,8 @@ async def update_university(slug: str, req: UpdateUniversityRequest, _=Depends(r
 
 
 @router.delete("/universities/{slug}")
-async def delete_university(slug: str, _=Depends(require_admin)):
-    """Admin: delete a university and ALL its data across collections using batches."""
+async def delete_university(slug: str, _=Depends(require_super_admin)):
+    """Super Admin: delete a university and ALL its data across collections using batches."""
     db = get_db()
     
     def _bulk_delete(collection_name: str, field: str, value: str):
@@ -254,20 +257,112 @@ async def delete_university(slug: str, _=Depends(require_admin)):
             batch.commit()
         return count
 
-    # 1. Delete knowledge
     kb_count = _bulk_delete("university_knowledge", "university_id", slug)
-    
-    # 2. Delete logs
-    logger.info(f"[Delete] Cleaning up logs for {slug}...")
     _bulk_delete("query_logs", "university_id", slug)
-    
-    # 3. Delete feedback
     _bulk_delete("query_feedback", "university_id", slug)
-
-    # 4. Delete the university doc
+    _bulk_delete("university_cms", "university_id", slug)
     db.collection("universities").document(slug).delete()
     
     from app.services.firebase import invalidate_universities_cache
     invalidate_universities_cache(slug)
     
     return {"message": f"University '{slug}' and {kb_count} knowledge entries deleted permanently."}
+
+
+# ── University Admin Management ─────────────────────────────────────────
+
+class CreateUniAdminRequest(BaseModel):
+    email: EmailStr
+    display_name: str
+    university_id: str
+    password: str
+
+class AssignUniversityRequest(BaseModel):
+    university_id: str
+
+@router.get("/users")
+async def list_all_users(role: Optional[str] = None, _=Depends(require_super_admin)):
+    """Super Admin: list all users, optionally filtered by role."""
+    db = get_db()
+    query = db.collection("users")
+    if role:
+        query = query.where("role", "==", role)
+    docs = query.stream()
+    users = []
+    for d in docs:
+        u = {"id": d.id, **d.to_dict()}
+        u.pop("hashed_password", None)  # never expose passwords
+        users.append(u)
+    return {"users": users, "total": len(users)}
+
+
+@router.post("/users/university-admin")
+async def create_university_admin(req: CreateUniAdminRequest, _=Depends(require_super_admin)):
+    """Super Admin: create a University Admin user and assign them a university."""
+    from app.services.auth_service import hash_password
+    from firebase_admin import firestore as fs
+    import uuid
+    db = get_db()
+    
+    # Check if email already exists
+    existing = list(db.collection("users").where("email", "==", req.email).get())
+    if existing:
+        raise HTTPException(400, "Email already registered")
+    
+    uid = str(uuid.uuid4())
+    db.collection("users").document(uid).set({
+        "email": req.email,
+        "display_name": req.display_name,
+        "hashed_password": hash_password(req.password),
+        "role": "university_admin",
+        "university_id": req.university_id,
+        "is_active": True,
+        "status": "approved",
+        "created_at": fs.SERVER_TIMESTAMP,
+        "updated_at": fs.SERVER_TIMESTAMP,
+    })
+    return {"message": f"University Admin {req.email} created and assigned to {req.university_id}", "uid": uid}
+
+
+@router.patch("/users/{uid}/assign-university")
+async def assign_university_to_admin(uid: str, req: AssignUniversityRequest, _=Depends(require_super_admin)):
+    """Super Admin: assign (or reassign) a university to an existing admin."""
+    db = get_db()
+    doc_ref = db.collection("users").document(uid)
+    if not doc_ref.get().exists:
+        raise HTTPException(404, "User not found")
+    doc_ref.update({"university_id": req.university_id, "updated_at": datetime.utcnow().isoformat()})
+    return {"message": f"User {uid} assigned to university {req.university_id}"}
+
+
+@router.patch("/users/{uid}/activate")
+async def activate_user(uid: str, _=Depends(require_super_admin)):
+    """Super Admin: activate a pending university admin account."""
+    db = get_db()
+    doc_ref = db.collection("users").document(uid)
+    if not doc_ref.get().exists:
+        raise HTTPException(404, "User not found")
+    doc_ref.update({"is_active": True, "status": "approved", "updated_at": datetime.utcnow().isoformat()})
+    return {"message": f"User {uid} activated"}
+
+
+@router.patch("/users/{uid}/deactivate")
+async def deactivate_user(uid: str, _=Depends(require_super_admin)):
+    """Super Admin: deactivate a user account."""
+    db = get_db()
+    doc_ref = db.collection("users").document(uid)
+    if not doc_ref.get().exists:
+        raise HTTPException(404, "User not found")
+    doc_ref.update({"is_active": False, "status": "inactive", "updated_at": datetime.utcnow().isoformat()})
+    return {"message": f"User {uid} deactivated"}
+
+
+@router.delete("/users/{uid}")
+async def delete_user(uid: str, _=Depends(require_super_admin)):
+    """Super Admin: permanently delete a user account."""
+    db = get_db()
+    doc_ref = db.collection("users").document(uid)
+    if not doc_ref.get().exists:
+        raise HTTPException(404, "User not found")
+    doc_ref.delete()
+    return {"message": f"User {uid} deleted"}

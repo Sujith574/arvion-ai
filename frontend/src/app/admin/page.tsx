@@ -12,6 +12,7 @@ import DataTab from "@/components/admin/DataTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
 import CMSSectionTab from "@/components/admin/CMSSectionTab";
 import ApprovalsTab from "@/components/admin/ApprovalsTab";
+import UsersTab from "@/components/admin/UsersTab";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals" | "users">("overview");
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -163,10 +164,9 @@ export default function AdminDashboard() {
                         <div style={{ display: "flex", gap: "0.25rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "max-content", minWidth: "100%" }}>
                             {([
                                 "overview", "logs", "knowledge", "cms",
-                                ...(isSuperAdmin ? ["approvals"] : []),
-                                ...(isSuperAdmin ? ["university"] : []),
+                                ...(isSuperAdmin ? ["approvals", "university", "users"] : []),
                                 "data", "feedback"
-                            ] as Array<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals">).map((tab) => (
+                            ] as Array<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals" | "users">).map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -182,6 +182,7 @@ export default function AdminDashboard() {
                                     {tab === "knowledge" && "🧠 Knowledge"}
                                     {tab === "cms" && "📱 Dynamic CMS"}
                                     {tab === "approvals" && "🛡️ Approvals"}
+                                    {tab === "users" && "👥 Users"}
                                     {tab === "university" && isSuperAdmin && "🏫 Partner Approval"}
                                     {tab === "data" && "📂 Data Files"}
                                     {tab === "feedback" && "👍🏼 Feedback"}
@@ -328,8 +329,12 @@ export default function AdminDashboard() {
                     {/* ── Super Admin Approvals ──────────────────── */}
                     {activeTab === "approvals" && isSuperAdmin && <ApprovalsTab token={token!} />}
 
+                    {/* ── Users Management ───────────────────────── */}
+                    {activeTab === "users" && isSuperAdmin && <UsersTab token={token!} />}
+
                     {/* ── Partner Approvals ──────────────────────── */}
                     {activeTab === "university" && isSuperAdmin && <UniversityTab token={token!} />}
+
 
                     {/* ΓöÇΓöÇ Data File Management ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
                     {activeTab === "data" && <DataTab token={token!} />}

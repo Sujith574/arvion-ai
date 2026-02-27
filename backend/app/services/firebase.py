@@ -97,23 +97,27 @@ async def get_knowledge_base(university_id: str) -> list[dict]:
     )
     entries = [{"id": d.id, **d.to_dict()} for d in kb_docs]
 
-    # 2. Fetch from new Dynamic CMS (Admissions, Fees, etc.)
+    # 2. Fetch from new Dynamic CMS (Admissions, Fees, etc.) - ONLY APPROVED
     cms_docs = (
         db.collection("university_cms")
-        .select(["title", "content", "section_id", "embedding_vector", "is_deleted"])
+        .select(["title", "content", "section_id", "embedding_vector", "is_deleted", "status"])
         .where("university_id", "==", university_id)
         .where("is_deleted", "==", False)
+        .where("status", "==", "approved")
         .stream()
     )
     for d in cms_docs:
         data = d.to_dict()
+        emb = data.get("embedding_vector")
+        if not emb:  # skip entries with empty embeddings
+            continue
         entries.append({
             "id": d.id,
             "question": data.get("title"),
             "answer": data.get("content"),
             "category": data.get("section_id"),
             "source": f"cms:{data.get('section_id')}",
-            "embedding_vector": data.get("embedding_vector")
+            "embedding_vector": emb
         })
 
     return entries

@@ -462,3 +462,57 @@ export async function getPendingCMS(token: string) {
     });
     return handleResponse<{ entries: any[]; total: number }>(res);
 }
+
+// ── User Management API (Super Admin) ─────────────────────────────────────
+export async function listAllUsers(token: string, role?: string) {
+    const url = role ? `${API_BASE}/api/admin/users?role=${role}` : `${API_BASE}/api/admin/users`;
+    const res = await fetch(url, { headers: getHeaders(token) });
+    return handleResponse<{ users: any[]; total: number }>(res);
+}
+
+export async function createUniversityAdmin(data: {
+    email: string;
+    display_name: string;
+    university_id: string;
+    password: string;
+}, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/users/university-admin`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; uid: string }>(res);
+}
+
+export async function assignUniversity(uid: string, university_id: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/users/${uid}/assign-university`, {
+        method: "PATCH",
+        headers: getHeaders(token),
+        body: JSON.stringify({ university_id }),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function activateUser(uid: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/users/${uid}/activate`, {
+        method: "PATCH",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function deactivateUser(uid: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/users/${uid}/deactivate`, {
+        method: "PATCH",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function deleteUser(uid: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/admin/users/${uid}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
