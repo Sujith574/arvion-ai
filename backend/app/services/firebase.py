@@ -20,15 +20,20 @@ def init_firebase():
     settings = get_settings()
     if not firebase_admin._apps:
         try:
-            # 1. Attempt using Service Account JSON (Local Dev / Explicit File)
-            import os
-            sa_path = settings.FIREBASE_SERVICE_ACCOUNT_PATH
-            if os.path.exists(sa_path):
-                logger.info(f"[Firebase] Initializing with service account: {sa_path}")
-                cred = credentials.Certificate(sa_path)
+            # 1. Attempt using Service Account JSON string (Cloud Run Secret/Env)
+            import json
+            if settings.FIREBASE_SERVICE_ACCOUNT_JSON:
+                logger.info("[Firebase] Initializing with service account JSON from environment")
+                sa_info = json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
+                cred = credentials.Certificate(sa_info)
+                firebase_admin.initialize_app(cred)
+            # 2. Attempt using Service Account JSON file (Local Dev)
+            elif os.path.exists(settings.FIREBASE_SERVICE_ACCOUNT_PATH):
+                logger.info(f"[Firebase] Initializing with service account: {settings.FIREBASE_SERVICE_ACCOUNT_PATH}")
+                cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_PATH)
                 firebase_admin.initialize_app(cred)
             else:
-                # 2. Fallback to Application Default Credentials (Cloud Run / GCP Native)
+                # 3. Fallback to Application Default Credentials
                 logger.info("[Firebase] Fallback to Application Default Credentials (ADC)")
                 cred = credentials.ApplicationDefault()
                 firebase_admin.initialize_app(cred, {

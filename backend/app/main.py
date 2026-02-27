@@ -15,12 +15,19 @@ logger = logging.getLogger(__name__)
 init_firebase()
 settings = get_settings()
 
-limiter = Limiter(key_func=get_remote_address)
+def get_client_ip(request):
+    """Custom key function to handle X-Forwarded-For correctly in production."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[1].strip() if "," in forwarded else forwarded.strip()
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=get_client_ip)
 
 app = FastAPI(
     title="Arvix AI API",
     version="1.0.0",
-    docs_url="/api/docs",
+    docs_url="/api/docs" if not settings.IS_PROD else None,
     redoc_url=None,
 )
 

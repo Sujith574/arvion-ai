@@ -17,6 +17,7 @@ class CMSEntry(BaseModel):
     metadata: Dict[str, Any] = {}
     priority: int = 0
     tags: List[str] = []
+    version: int = 1
 
 class CMSEntryUpdate(BaseModel):
     title: Optional[str] = None
@@ -24,6 +25,7 @@ class CMSEntryUpdate(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
     priority: Optional[int] = None
     tags: Optional[List[str]] = None
+    version: Optional[int] = None
 
 def log_audit(university_id: str, section_id: str, action: str, entry_id: str, user_id: str):
     """Log CMS changes for audit trails."""
@@ -150,6 +152,7 @@ async def update_cms_entry(
 
     updates = {k: v for k, v in entry_update.dict().items() if v is not None}
     updates["updated_at"] = datetime.utcnow().isoformat()
+    updates["version"] = existing.get("version", 1) + 1
 
     is_super_admin = admin_data.get("role") == "super_admin"
     if not is_super_admin:
@@ -233,7 +236,13 @@ async def approve_cms_entry(entry_id: str, admin_data=Depends(require_super_admi
         # Recompute embedding on approval
         from app.services.rag_service import get_embedding, invalidate_cache
         text_to_embed = f"{data.get('title')}: {data.get('content')}"
-        embedding_vector = (await get_embedding(text_to_embed)).tolist()
+        try:
+            embedding_vector = (await get_embedding(text_to_embed)).tolist()
+            if not embedding_vector or len(embedding_vector) == 0:
+                 raise ValueError("Empty embedding generated")
+        except Exception as e:
+            logger.error(f"[CMS] Embedding generation failed during approval: {e}")
+            raise HTTPException(500, "Failed to index content. Please try approving again.")
         
         doc_ref.update({
             "status": "approved", 
@@ -244,7 +253,7 @@ async def approve_cms_entry(entry_id: str, admin_data=Depends(require_super_admi
     
     from app.services.rag_service import invalidate_cache
     invalidate_cache(data["university_id"])
-    return {"message": "Entry approved"}
+    return {"message": "Entry approved and indexed"}
 
 @router.post("/super-admin/reject/{entry_id}")
 async def reject_cms_entry(entry_id: str, admin_data=Depends(require_super_admin)):

@@ -239,6 +239,19 @@ class RAGService:
         # ── Step 3: Synthesis ────────────────────────────────────────
         top_score = context_docs[0].get("similarity", 0.0) if context_docs else 0.0
         kb_context = ""
+
+        # Cost Control: If confidence is extremely low (< MIN_CONFIDENCE_FOR_LLM), 
+        # and it's not a generic query, we might skip Gemini to save costs.
+        if top_score < settings.MIN_CONFIDENCE_FOR_LLM:
+            logger.info(f"[RAG] Confidence {top_score:.2f} too low. Skipping LLM to save costs.")
+            return {
+                "answer": f"I am here to assist you with everything related to {uni_name}. Whether you need details about admissions, placements, scholarships, or campus life, I would be happy to help you navigate your journey here.",
+                "category": "general",
+                "confidence": top_score,
+                "sources": [],
+                "used_fallback": True
+            }
+
         if top_score > 0.45:
             kb_context = "\n\n".join([
                 f"Topic: {d.get('category')}\nQ: {d.get('question')}\nA: {d.get('answer')}"
