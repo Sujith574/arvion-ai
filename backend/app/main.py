@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -52,9 +52,9 @@ app.add_middleware(
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"GLOBAL ERROR: {exc}", exc_info=True)
-    return Response(
-        content=f"Internal Server Error: {str(exc)}",
+    return JSONResponse(
         status_code=500,
+        content={"detail": str(exc)},
         headers={"Access-Control-Allow-Origin": "*"}
     )
 

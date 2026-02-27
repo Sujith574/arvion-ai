@@ -45,4 +45,4 @@ async def get_current_user(token: str) -> dict:
     doc = db.collection("users").document(uid).get()
     if not doc.exists:
         raise HTTPException(401, "User not found")
-    return {"id": uid, **doc.to_dict()}
+    return {"id": uid, "uid": uid, **doc.to_dict()}
