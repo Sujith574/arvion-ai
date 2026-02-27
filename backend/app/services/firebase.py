@@ -1,5 +1,6 @@
 import firebase_admin
 import threading
+import os
 from firebase_admin import credentials, firestore
 from app.config import get_settings
 from functools import lru_cache
