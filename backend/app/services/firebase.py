@@ -1,4 +1,5 @@
 import firebase_admin
+import threading
 from firebase_admin import credentials, firestore
 from app.config import get_settings
 from functools import lru_cache
@@ -15,13 +16,17 @@ _universities_cache: dict = {}
 _universities_cache_ttl: float = 0.0
 _CACHE_TTL_SECONDS = 120  # 2 minute cache for university list
 
+_firebase_lock = threading.Lock()
 
 def init_firebase():
     settings = get_settings()
-    try:
-        firebase_admin.get_app()
-        return
-    except ValueError:
+    with _firebase_lock:
+        try:
+            firebase_admin.get_app()
+            return # Already initialized
+        except ValueError:
+            pass # Not initialized yet
+
         try:
             # 1. Attempt using Service Account JSON string (Cloud Run Secret/Env)
             import json
@@ -43,8 +48,7 @@ def init_firebase():
                     "projectId": settings.FIREBASE_PROJECT_ID
                 })
         except Exception as e:
-            logger.error(f"[Firebase] Initialization critical failure: {e}")
-            # Do not re-throw, let the app try to start, though Firestore calls will fail later
+            logger.error(f"[Firebase] Initialization failed: {e}")
 
 
 def get_db():
