@@ -1,0 +1,298 @@
+# 🎓 Arvix AI — Full Platform Overview
+
+> **Enterprise-Grade, Admin-Controlled University AI Assistant Platform**  
+> Production Deployment: Google Cloud Run | Database: Firebase Firestore | AI: FAISS + Gemini
+
+---
+
+## 🌐 Live URLs
+
+| Service | URL |
+|---|---|
+| **Frontend** | `https://arvion-frontend-348624065149.us-central1.run.app` |
+| **Backend API** | `https://arvion-backend-348624065149.us-central1.run.app` |
+| **API Docs (Swagger)** | `https://arvion-backend-348624065149.us-central1.run.app/api/docs` |
+| **GitHub** | `main` branch — always in sync |
+
+---
+
+## 🏛️ Platform Architecture
+
+```mermaid
+flowchart TD
+    User["👤 Normal User"] -->|browse + request| FE["Next.js Frontend"]
+    UA["🏫 University Admin"] -->|manage own CMS| FE
+    SA["🛡️ Super Admin"] -->|full control| FE
+    FE -->|HTTPS REST| BE["FastAPI Backend"]
+    BE -->|read / write| DB["Firebase Firestore"]
+    BE -->|vector search| FAISS["FAISS Embedding Index"]
+    BE -->|LLM fallback| GEMINI["Gemini AI"]
+    BE -->|emails| SMTP["Gmail SMTP"]
+    DB -->|approved data only| FAISS
+```
+
+---
+
+## 👥 Role-Based Access Control (RBAC)
+
+### Three Distinct Roles
+
+| Role | Login | Permissions |
+|---|---|---|
+| **Normal User (student)** | Email + OTP | Browse universities, use chatbot, request new university |
+| **University Admin** | Email + Password | Manage CMS for their assigned university only. All changes → pending |
+| **Super Admin** | Email + Password (reset required) | Full platform control. Approve/reject all changes |
+
+> [!IMPORTANT]
+> All role checks are enforced **server-side** in [app/dependencies.py](file:///c:/Users/sujit/arvion-ai/backend/app/dependencies.py). University Admins cannot access another university's data even by intercepting API calls — the backend verifies their UUID's assigned `university_id` on every request.
+
+---
+
+## 🚦 Complete Approval Workflow
+
+```mermaid
+sequenceDiagram
+    participant UA as University Admin
+    participant BE as Backend API
+    participant DB as Firestore
+    participant SA as Super Admin
+    participant RAG as Chatbot (RAG)
+
+    UA->>BE: Create/Edit/Delete CMS entry
+    BE->>DB: Save with status: pending
+    SA->>BE: GET /cms/super-admin/pending
+    BE->>SA: Returns all pending entries
+    SA->>BE: POST /cms/super-admin/approve/{id}
+    BE->>DB: Update status → approved
+    BE->>BE: Generate embedding vector
+    BE->>RAG: Cache invalidated → AI learns new data
+    Note over RAG: AI now answers from approved content
+```
+
+> [!NOTE]
+> **Soft Delete Workflow:** When a University Admin deletes an entry, it becomes `pending_delete`. The Super Admin must review and approve the deletion. The AI never sees deleted or pending content.
+
+---
+
+## 🤖 AI Chatbot Architecture
+
+### How It Works
+1. User types a question in the university chat page
+2. Backend calls **RAGService** for that specific university
+3. FAISS searches the **approved** knowledge base for semantically similar content
+4. If confidence ≥ 75% → returns knowledge base answer
+5. If confidence < 75% → falls back to **Gemini AI** with context
+6. Response is logged to [query_logs](file:///c:/Users/sujit/arvion-ai/backend/app/routers/admin.py#71-84) for admin analytics
+
+### Data Sources (Both Feed the AI)
+| Source | Collection | Filter |
+|---|---|---|
+| Knowledge Files (CSV/Excel) | `university_knowledge` | `verified: true` |
+| Dynamic CMS Entries | `university_cms` | `status: approved` AND `is_deleted: false` |
+
+> [!IMPORTANT]
+> The chatbot only reads `status: approved` CMS entries. Pending, rejected, or deleted content is never exposed to users or the AI.
+
+---
+
+## 📊 Admin Dashboard — Complete Tab Guide
+
+### 🛡️ Super Admin (All Tabs)
+
+| Tab | What It Does |
+|---|---|
+| 📊 **Overview** | Charts: queries by category, confidence health, AI layer status |
+| 📋 **Logs** | Full query log table — every user question and AI response |
+| 🧠 **Knowledge** | Upload structured knowledge CSV/Excel files per university |
+| 📱 **Dynamic CMS** | CRUD manager for all university content sections |
+| 🛡️ **Approvals** | Queue of all pending/pending_delete entries across all universities |
+| 👥 **Users** | Full user directory. Create University Admins. Assign, activate, deactivate, delete |
+| 🏫 **Partner Approval** | User-submitted university requests — approve to create the university |
+| 📂 **Data Files** | View uploaded files, delete all entries for a university |
+| 👍 **Feedback** | User thumbs up/down ratings on chatbot answers |
+
+### 🏫 University Admin (Restricted Tabs)
+Sees: Overview, Logs, Knowledge, Dynamic CMS, Data Files, Feedback — **only for their assigned university**.
+
+---
+
+## 📱 Dynamic CMS — Section System
+
+The CMS supports **unlimited sections** for each university. Current built-in sections include:
+
+| Section | Description |
+|---|---|
+| Emergency Contacts | Police, ambulance, campus security, wardens |
+| Admissions | Eligibility, dates, process, documents |
+| Courses | Programs offered, duration, credits |
+| Fee Structure | Tuition, hostel, mess, exam fees |
+| Scholarships | Merit, government, sports-based |
+| Hostel Information | Blocks, rules, facilities |
+| Placements | Top recruiters, average packages, stats |
+| Faculty | Department-wise faculty listings |
+| Events | Fests, seminars, deadlines |
+| Notices | Official university announcements |
+
+Each entry has: `title`, `content`, `priority`, `metadata (key-value)`, `status`, `created_by`, `version`.
+
+> [!TIP]
+> New sections can be added at runtime from the Admin Dashboard without any code changes.
+
+---
+
+## 🗃️ Database Design (Firebase Firestore)
+
+```
+Firestore
+├── universities/
+│   └── {slug}/ → name, description, location, status, confidence_threshold
+│
+├── university_cms/
+│   └── {entry_id}/ → university_id, section_id, title, content, metadata{}
+│                      status (draft|pending|approved|rejected|pending_delete)
+│                      is_deleted, embedding_vector[], version, priority
+│                      created_by, updated_by, approved_by, timestamps
+│
+├── university_knowledge/
+│   └── {id}/ → university_id, question, answer, category, embedding_vector[], verified
+│
+├── users/
+│   └── {uid}/ → email, display_name, role, university_id, is_active, status
+│                 hashed_password (bcrypt), created_at
+│
+├── cms_audit_logs/
+│   └── {log_id}/ → entry_id, section_id, university_id, action, performed_by, timestamp
+│
+├── university_requests/
+│   └── {id}/ → university_name, email, status (pending|approved|rejected)
+│
+├── query_logs/
+│   └── {id}/ → university_id, query, response, confidence_score, category, timestamp
+│
+├── query_feedback/
+│   └── {id}/ → query_id, rating, comment, university_id, timestamp
+│
+├── otp_codes/
+│   └── {email::purpose}/ → otp, expires_at (TTL 10min)
+│
+└── otp_verified/
+    └── {email::purpose}/ → verified_token, expires_at (TTL 15min)
+```
+
+---
+
+## 🔐 Security Architecture
+
+| Layer | Implementation |
+|---|---|
+| **Passwords** | bcrypt hashed — never stored in plain text |
+| **Authentication** | JWT tokens, 24h expiry, role embedded in payload |
+| **Authorization** | Server-side RBAC middleware on every protected route |
+| **University Isolation** | [verify_university_access()](file:///c:/Users/sujit/arvion-ai/backend/app/dependencies.py#30-37) checks user's `university_id` against request |
+| **OTP Flow** | 6-digit OTP, email-delivered, 10min expiry, one-time-use |
+| **Rate Limiting** | 20 requests/minute per IP (SlowAPI) |
+| **Password Reset** | OTP verification required — no direct reset without email access |
+| **Secrets** | All secrets in [.env](file:///c:/Users/sujit/arvion-ai/backend/.env) / Cloud Run environment variables — never in code |
+| **Super Admin** | Cannot be created through the API. Only via secure [init_super_admin.py](file:///c:/Users/sujit/arvion-ai/backend/app/scripts/init_super_admin.py) script |
+
+---
+
+## ⚙️ Backend API — Routers
+
+| Router | Prefix | Key Endpoints |
+|---|---|---|
+| [auth.py](file:///c:/Users/sujit/arvion-ai/backend/app/routers/auth.py) | `/api/auth` | `/send-otp`, `/verify-otp`, `/signup`, `/token`, `/reset-password`, `/me` |
+| [admin.py](file:///tmp/create_admin.py) | `/api/admin` | `/stats/{slug}`, `/logs/{slug}`, `/universities`, `/users`, `/university-requests` |
+| `cms.py` | `/api/cms` | `/{uni}/{section}`, `/admin/{uni}/{section}`, `/super-admin/pending`, `/approve`, `/reject` |
+| `chat.py` | `/api/chat` | `/message` (AI response), `/feedback` |
+| `universities.py` | `/api/universities` | List, get single university |
+| `data.py` | `/api/data` | Upload CSV/Excel, list files, delete entries |
+| `knowledge.py` | `/api/knowledge` | Knowledge base CRUD |
+| `emergency.py` | `/api/emergency` | Emergency contacts per university |
+| `university_requests.py` | `/api/universities` | `/request` (user submission) |
+
+---
+
+## 🖥️ Frontend — Page Structure
+
+| Route | What It Is |
+|---|---|
+| `/` | Home — university discovery, feature highlights |
+| `/university/[slug]` | University page + embedded AI chatbot |
+| `/university/[slug]/chat` | Full-screen dedicated chat interface |
+| `/auth/login` | Email + Password login |
+| `/auth/signup` | OTP-verified email signup |
+| `/auth/reset-password` | OTP email verification → set new password |
+| `/admin` | Admin Dashboard (protected — admins only) |
+| `/request-university` | Normal users submit university addition requests |
+
+---
+
+## 🚀 Tech Stack Summary
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | Next.js 16, React, TypeScript, Zustand, Framer Motion |
+| **Backend** | FastAPI (Python), Uvicorn, SlowAPI |
+| **Database** | Firebase Firestore (NoSQL, real-time) |
+| **AI/Embeddings** | FAISS (local vector search), sentence-transformers |
+| **LLM Fallback** | Google Gemini AI |
+| **Authentication** | JWT (jose), bcrypt |
+| **Email** | Gmail SMTP (OTP delivery) |
+| **Infrastructure** | Google Cloud Run (containerized, auto-scaling) |
+| **CI/CD** | GitHub → `gcloud run deploy --source .` |
+| **Security** | CORS, GZip, Rate Limiting, Security Headers middleware |
+
+---
+
+## 📋 Environment Variables (Backend)
+
+```env
+# Firebase
+FIREBASE_PROJECT_ID=arvion-241094
+FIREBASE_SERVICE_ACCOUNT_PATH=serviceAccountKey.json
+
+# JWT
+JWT_SECRET_KEY=<strong-secret>
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# AI
+GEMINI_API_KEY=<your-key>
+PROLIXIS_API_KEY=<your-key>
+
+# Email (OTP)
+SMTP_FROM_EMAIL=startupai241094@gmail.com
+SMTP_APP_PASSWORD=<app-password>
+
+# Embedding
+EMBEDDING_MODEL=/app/model_cache
+DEFAULT_CONFIDENCE_THRESHOLD=0.75
+RATE_LIMIT_PER_MINUTE=20
+```
+
+---
+
+## 🔑 Super Admin Access
+
+| Field | Value |
+|---|---|
+| **Email** | `startupai241094@gmail.com` |
+| **Password Setup** | Go to `/auth/reset-password` → enter email → verify OTP → set password |
+| **Role** | `super_admin` — hardcoded in DB, cannot be changed via API |
+
+---
+
+## 📈 Scalability Design
+
+- **Multi-university SaaS**: Each university is completely isolated by `university_id`
+- **New universities**: Created from Admin Dashboard instantly — no code changes
+- **New CMS sections**: Added at runtime — schema is fully dynamic
+- **Auto-scaling**: Cloud Run scales to zero (cost-efficient) and up to handle traffic
+- **FAISS index**: Rebuilt per-university on first query, cached in memory for speed
+- **TTL caching**: University list cached 2 minutes, avoiding cold Firestore reads
+- **Semantic caching**: Similar queries return cached AI responses (cost + speed)
+
+---
+
+*Last deployed: 2026-02-27 | Platform: Arvix AI v2.0 Enterprise*

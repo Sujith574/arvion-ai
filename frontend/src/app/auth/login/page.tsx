@@ -45,9 +45,14 @@ export default function LoginPage() {
                 universityId: res.university_id,
             });
 
-            // Navigate to university dashboard or home
-            const target = res.university_id ? `/university/${res.university_id}` : "/";
-            router.push(target);
+            // Role-based redirect
+            if (res.role === "super_admin" || res.role === "university_admin") {
+                router.push("/admin");
+            } else if (res.university_id) {
+                router.push(`/university/${res.university_id}`);
+            } else {
+                router.push("/");
+            }
 
         } catch (err: any) {
             console.error("[LoginError]", err);

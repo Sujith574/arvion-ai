@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { getUniversity, type University } from "@/lib/api";
+import { getUniversity, getCMSEntries, type University } from "@/lib/api";
 
 const icons = {
     chat: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>,
@@ -27,23 +27,6 @@ const QUICK_ACTIONS = [
     { id: "fees", label: "Fee Structure", desc: "Tuition & hostel fees", icon: icons.book, color: "#ec4899", bg: "#fdf2f8", href: "chat?cat=fees" },
 ];
 
-const LPU_INFO = {
-    departments: [
-        { name: "Engineering & Technology", programs: "B.Tech, M.Tech, Ph.D." },
-        { name: "Business & Management", programs: "BBA, MBA, PGDM" },
-        { name: "Computer Applications", programs: "BCA, MCA, B.Sc. CS" },
-        { name: "Design & Architecture", programs: "B.Des, M.Arch, B.Arch" },
-        { name: "Agriculture Sciences", programs: "B.Sc. Agri, M.Sc. Agri" },
-        { name: "Law & Legal Studies", programs: "BA LLB, BBA LLB, LLM" },
-    ],
-    contacts: [
-        { label: "General & Admissions", phone: "01824-517000", available: "24/7 Enquiry" },
-        { label: "WhatsApp Support", phone: "+91 98525 69000", available: "Message Anytime" },
-        { label: "Medical Emergency", phone: "01824-444079", available: "24/7 Hospital" },
-        { label: "Security Emergency", phone: "95018-10448", available: "24/7 Security" },
-    ],
-};
-
 
 export default function UniversityDashboard() {
     const params = useParams();
@@ -51,30 +34,34 @@ export default function UniversityDashboard() {
 
     const [university, setUniversity] = useState<University | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<"overview" | "departments" | "contacts">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "courses" | "contacts">("overview");
+    const [cmsData, setCmsData] = useState<{ courses: any[]; emergency: any[]; notices: any[] }>({
+        courses: [], emergency: [], notices: []
+    });
 
     useEffect(() => {
         getUniversity(slug)
             .then((res) => setUniversity(res.university))
-            .catch(() => {
-                // Demo fallback for LPU
-                if (slug === "lpu") {
-                    setUniversity({
-                        id: "lpu", slug: "lpu",
-                        name: "Lovely Professional University",
-                        location: "Phagwara, Punjab — NH-1",
-                        description: "India's largest private university with 30,000+ students across 200+ programs, autonomous since 2018.",
-                        established: "2005",
-                        students_count: "30,000+",
-                    });
-                }
-            })
+            .catch(() => { })
             .finally(() => setLoading(false));
+
+        // Fetch dynamic CMS sections for this university
+        Promise.all([
+            getCMSEntries(slug, "courses"),
+            getCMSEntries(slug, "emergency"),
+            getCMSEntries(slug, "notices"),
+        ]).then(([coursesRes, emergencyRes, noticesRes]) => {
+            setCmsData({
+                courses: coursesRes.entries || [],
+                emergency: emergencyRes.entries || [],
+                notices: noticesRes.entries || [],
+            });
+        }).catch(() => { });
     }, [slug]);
 
     const tabs = [
         { id: "overview", label: "Overview" },
-        { id: "departments", label: "Departments" },
+        { id: "courses", label: "Courses" },
         { id: "contacts", label: "Contacts" },
     ] as const;
 
@@ -280,37 +267,68 @@ export default function UniversityDashboard() {
                         </div>
                     )}
 
-                    {/* Departments Tab */}
-                    {activeTab === "departments" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
-                            {LPU_INFO.departments.map((dept, i) => (
-                                <div key={i} className="card" style={{ padding: "1.5rem" }}>
-                                    <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "0.875rem", marginBottom: "0.875rem" }}>
-                                        {i + 1}
-                                    </div>
-                                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{dept.name}</h3>
-                                    <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>{dept.programs}</p>
+                    {/* Courses Tab - Dynamic from CMS */}
+                    {activeTab === "courses" && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                            {cmsData.courses.length === 0 ? (
+                                <div className="card" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📚</div>
+                                    <p>No course information published yet. Check back soon or ask the AI assistant.</p>
+                                    <Link href={`/university/${slug}/chat`} className="btn-primary" style={{ display: "inline-block", marginTop: "1rem", padding: "0.625rem 1.5rem", borderRadius: "10px", textDecoration: "none" }}>Ask AI about courses</Link>
                                 </div>
-                            ))}
+                            ) : (
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: "1.25rem" }}>
+                                    {cmsData.courses.map((course, i) => (
+                                        <div key={course.id} className="card" style={{ padding: "1.5rem" }}>
+                                            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "0.875rem", marginBottom: "0.875rem" }}>
+                                                {i + 1}
+                                            </div>
+                                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{course.title}</h3>
+                                            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{course.content}</p>
+                                            {course.metadata && Object.keys(course.metadata).length > 0 && (
+                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.75rem" }}>
+                                                    {Object.entries(course.metadata).map(([k, v]) => (
+                                                        <span key={k} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", borderRadius: "6px", background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                                                            {k}: {String(v)}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Contacts Tab */}
+                    {/* Contacts Tab - Dynamic from CMS */}
                     {activeTab === "contacts" && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
-                            {LPU_INFO.contacts.map((contact, i) => (
-                                <div key={i} className="card" style={{ padding: "1.5rem" }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-600)", marginBottom: "0.625rem" }}>
-                                        {icons.phone}
-                                        <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>Contact</span>
-                                    </div>
-                                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{contact.label}</h3>
-                                    <a href={`tel:${contact.phone}`} style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--brand-600)", textDecoration: "none", display: "block", marginBottom: "0.375rem" }}>
-                                        {contact.phone}
-                                    </a>
-                                    <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>{contact.available}</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                            {cmsData.emergency.length === 0 ? (
+                                <div className="card" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📞</div>
+                                    <p>No contact information published yet.</p>
+                                    <Link href={`/university/${slug}/emergency`} style={{ display: "inline-block", marginTop: "1rem", color: "var(--brand-600)", fontWeight: 700, textDecoration: "none" }}>View Emergency Contacts</Link>
                                 </div>
-                            ))}
+                            ) : (
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
+                                    {cmsData.emergency.map((contact) => (
+                                        <div key={contact.id} className="card" style={{ padding: "1.5rem" }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-600)", marginBottom: "0.625rem" }}>
+                                                {icons.phone}
+                                                <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>Contact</span>
+                                            </div>
+                                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{contact.title}</h3>
+                                            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{contact.content}</p>
+                                            {contact.metadata?.phone && (
+                                                <a href={`tel:${contact.metadata.phone}`} style={{ fontSize: "1.125rem", fontWeight: 800, color: "var(--brand-600)", textDecoration: "none", display: "block", marginTop: "0.5rem" }}>
+                                                    {contact.metadata.phone}
+                                                </a>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
