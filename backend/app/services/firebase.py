@@ -18,7 +18,10 @@ _CACHE_TTL_SECONDS = 120  # 2 minute cache for university list
 
 def init_firebase():
     settings = get_settings()
-    if not firebase_admin._apps:
+    try:
+        firebase_admin.get_app()
+        return
+    except ValueError:
         try:
             # 1. Attempt using Service Account JSON string (Cloud Run Secret/Env)
             import json
@@ -47,8 +50,7 @@ def init_firebase():
 def get_db():
     global _db
     if _db is None:
-        if not firebase_admin._apps:
-            init_firebase()
+        init_firebase()
         _db = firestore.client()
     return _db
 
