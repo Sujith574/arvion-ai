@@ -17,11 +17,14 @@ settings = get_settings()
 
 def get_client_ip(request):
     """Custom key function to handle X-Forwarded-For correctly in production."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        # User is usually the first IP in the list
-        return forwarded.split(",")[0].strip()
-    return get_remote_address(request)
+    try:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            # User is usually the first IP in the list
+            return forwarded.split(",")[0].strip()
+        return get_remote_address(request)
+    except Exception:
+        return "127.0.0.1"
 
 limiter = Limiter(key_func=get_client_ip)
 
@@ -37,12 +40,16 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(SecurityMiddleware)
 
-# CORS must be the absolute outermost middleware (added last in FastAPI)
-# to ensure it handles preflight OPTIONS requests before any other logic.
+# Dedicated CORS handles everything from local to prod
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://arvion-frontend-348624065149.us-central1.run.app",
+        "https://arvion-ai.web.app"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -47,6 +47,8 @@ def init_firebase():
 def get_db():
     global _db
     if _db is None:
+        if not firebase_admin._apps:
+            init_firebase()
         _db = firestore.client()
     return _db
 
