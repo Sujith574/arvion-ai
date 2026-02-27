@@ -94,11 +94,20 @@ def get_embedding_model():
         logger.error(f"[RAG] SentenceTransformer load failed: {e}")
         return None
 
+def _encode_text_with_logging(model, text: str) -> np.ndarray:
+    try:
+        embedding = model.encode(text, convert_to_tensor=False)
+        logger.info(f"Generated embedding for: {text[:50]}... (dim={len(embedding)})")
+        return embedding
+    except Exception as e:
+        logger.error(f"Error encoding text: {str(e)}")
+        return np.zeros(768)
+
 async def get_embedding(text: str) -> np.ndarray:
     model = get_embedding_model()
     if model:
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(_executor, lambda: model.encode(text, normalize_embeddings=True))
+        return await loop.run_in_executor(_executor, _encode_text_with_logging, model, text)
     return np.zeros(768)
 
 def invalidate_cache(university_id: str):

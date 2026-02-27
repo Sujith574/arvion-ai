@@ -4,7 +4,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, chat, universities, admin, emergency, knowledge, data, university_requests
+from app.routers import auth, chat, universities, admin, emergency, knowledge, data, university_requests, cms
 from app.services.firebase import init_firebase, get_db
 from app.middleware.security import SecurityMiddleware
 from app.config import get_settings
@@ -33,7 +33,13 @@ app.add_middleware(SecurityMiddleware)
 # to ensure it handles preflight OPTIONS requests before any other logic.
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://arvion-frontend-348624065149.us-central1.run.app",
+        "https://arvion-ai.web.app"
+    ],
+    allow_origin_regex=".*", # Keep as fallback
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,6 +84,7 @@ app.include_router(emergency.router,      prefix="/api/emergency",    tags=["Eme
 app.include_router(knowledge.router,      prefix="/api/knowledge",    tags=["Knowledge"])
 app.include_router(data.router,             prefix="/api/data",            tags=["Data"])
 app.include_router(university_requests.router, prefix="/api/universities",  tags=["University Requests"])
+app.include_router(cms.router, prefix="/api/cms", tags=["CMS"])
 
 
 @app.api_route("/api/health", methods=["GET", "HEAD"])

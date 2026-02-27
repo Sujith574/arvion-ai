@@ -87,15 +87,36 @@ def invalidate_universities_cache(slug: Optional[str] = None):
 
 async def get_knowledge_base(university_id: str) -> list[dict]:
     db = get_db()
-    # Optimization: Only select fields needed for the RAG engine
-    docs = (
+    # 1. Fetch from standard knowledge base
+    kb_docs = (
         db.collection("university_knowledge")
         .select(["question", "answer", "category", "source", "embedding_vector"])
         .where("university_id", "==", university_id)
         .where("verified", "==", True)
         .stream()
     )
-    return [{"id": d.id, **d.to_dict()} for d in docs]
+    entries = [{"id": d.id, **d.to_dict()} for d in kb_docs]
+
+    # 2. Fetch from new Dynamic CMS (Admissions, Fees, etc.)
+    cms_docs = (
+        db.collection("university_cms")
+        .select(["title", "content", "section_id", "embedding_vector", "is_deleted"])
+        .where("university_id", "==", university_id)
+        .where("is_deleted", "==", False)
+        .stream()
+    )
+    for d in cms_docs:
+        data = d.to_dict()
+        entries.append({
+            "id": d.id,
+            "question": data.get("title"),
+            "answer": data.get("content"),
+            "category": data.get("section_id"),
+            "source": f"cms:{data.get('section_id')}",
+            "embedding_vector": data.get("embedding_vector")
+        })
+
+    return entries
 
 
 async def log_query(log_data: dict) -> str:

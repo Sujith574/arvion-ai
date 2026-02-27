@@ -388,3 +388,77 @@ export async function listAllUniversities(token: string) {
     });
     return handleResponse<{ universities: University[] }>(res);
 }
+
+// ── CMS API ────────────────────────────────────────────────────
+export async function getCMSSections(universityId: string) {
+    const res = await fetch(`${API_BASE}/api/cms/${universityId}/sections`);
+    return handleResponse<{ sections: any[] }>(res);
+}
+
+export async function getCMSEntries(universityId: string, sectionId: string, token?: string) {
+    if (token) {
+        const res = await fetch(`${API_BASE}/api/cms/admin/${universityId}/${sectionId}`, {
+            headers: getHeaders(token),
+        });
+        return handleResponse<{ entries: any[]; total: number }>(res);
+    }
+    const res = await fetch(`${API_BASE}/api/cms/${universityId}/${sectionId}`);
+    return handleResponse<{ entries: any[]; total: number }>(res);
+}
+
+
+export async function createCMSEntry(universityId: string, sectionId: string, data: any, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/${universityId}/${sectionId}`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; id: string }>(res);
+}
+
+export async function updateCMSEntry(universityId: string, sectionId: string, entryId: string, data: any, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/${universityId}/${sectionId}/${entryId}`, {
+        method: "PATCH",
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function deleteCMSEntry(universityId: string, sectionId: string, entryId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/${universityId}/${sectionId}/${entryId}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function getCMSAuditLogs(universityId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/audit-logs/${universityId}`, {
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ logs: any[] }>(res);
+}
+
+export async function approveCMSEntry(entryId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/super-admin/approve/${entryId}`, {
+        method: "POST",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function rejectCMSEntry(entryId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/super-admin/reject/${entryId}`, {
+        method: "POST",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+export async function getPendingCMS(token: string) {
+    const res = await fetch(`${API_BASE}/api/cms/super-admin/pending`, {
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ entries: any[]; total: number }>(res);
+}

@@ -16,12 +16,21 @@ async def get_user(token: str = Depends(get_token_from_header)):
 
 
 async def require_admin(user=Depends(get_user)):
-    if user["role"] not in ("university_admin", "super_admin"):
+    if user.get("role") not in ("university_admin", "super_admin"):
         raise HTTPException(403, "Admin access required")
     return user
 
 
 async def require_super_admin(user=Depends(get_user)):
-    if user["role"] != "super_admin":
+    if user.get("role") != "super_admin":
         raise HTTPException(403, "Super admin access required")
     return user
+
+
+def verify_university_access(user: dict, university_id: str):
+    """Ensure university admin only accesses their assigned university."""
+    if user.get("role") == "super_admin":
+        return True
+    if user.get("role") == "university_admin" and user.get("university_id") == university_id:
+        return True
+    raise HTTPException(403, "Access denied to this university's data")
