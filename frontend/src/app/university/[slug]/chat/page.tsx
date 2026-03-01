@@ -369,7 +369,7 @@ export default function ChatPage() {
                                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
                             }}
                             onKeyDown={handleKeyDown}
-                            placeholder={`Ask anything about ${slug.toUpperCase()}…`}
+                            placeholder={`Ask anything about ${slug.toUpperCase()}...`}
                             disabled={isLoading}
                             rows={1}
                             style={{

@@ -7,7 +7,7 @@ import { getUniversities, requestUniversity, type University } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import PWAInstallButton from "@/components/PWAInstallButton";
 
-// ΓöÇΓöÇ Icons ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Icons ───────────────────────────────────────────────────
 const icons = {
   spark: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -81,7 +81,7 @@ const icons = {
   ),
 };
 
-// ΓöÇΓöÇ Data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Data ────────────────────────────────────────────────────
 const features = [
   {
     icon: icons.brain,
@@ -123,13 +123,13 @@ const features = [
     color: "#ef4444",
     bg: "#fff1f2",
     title: "Student-First Design",
-    desc: "Built for students, parents, and seekers ΓÇö clean, mobile-first, and accessible to everyone.",
+    desc: "Built for students, parents, and seekers — clean, mobile-first, and accessible to everyone.",
   },
 ];
 
 const steps = [
   { step: "01", title: "Select Your University", desc: "Choose from our growing list of partner universities." },
-  { step: "02", title: "Ask Your Question", desc: "Type naturally ΓÇö our AI understands context, not just keywords." },
+  { step: "02", title: "Ask Your Question", desc: "Type naturally — our AI understands context, not just keywords." },
   { step: "03", title: "Get Verified Answers", desc: "Receive factual, source-backed responses in seconds." },
   { step: "04", title: "Take Action", desc: "Follow up with emergency contacts, deadlines, or admissions steps." },
 ];
@@ -141,7 +141,7 @@ const stats = [
   { value: "0", label: "Waiting Time" },
 ];
 
-// ΓöÇΓöÇ Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Component ───────────────────────────────────────────────
 export default function HomePage() {
   const [universities, setUniversityList] = useState<University[]>([]);
   const [selectedUni, setSelectedUni] = useState("");
@@ -197,7 +197,7 @@ export default function HomePage() {
       <Navbar />
 
       <main style={{ overflowX: "hidden" }}>
-        {/* ΓöÇΓöÇ Hero Section ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── Hero Section ────────────────────────────────────────── */}
         <section
           id="hero"
           className="hero-section"
@@ -261,7 +261,7 @@ export default function HomePage() {
               }}
             >
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-              Now live in 1 university ┬╖ Expanding soon
+              Now live in 1 university · Expanding soon
             </div>
 
             {/* Headline */}
@@ -292,7 +292,7 @@ export default function HomePage() {
                 animation: "fadeInUp 0.5s ease-out 0.2s both",
               }}
             >
-              Launching with LPU ┬╖ More coming. Get instant, verified answers about admissions, hostel, fees, scholarships, and emergencies ΓÇö tailored to your university.
+              Launching with LPU · More coming. Get instant, verified answers about admissions, hostel, fees, scholarships, and emergencies — tailored to your university.
             </p>
 
             {/* University Selector */}
@@ -320,7 +320,7 @@ export default function HomePage() {
                   className="input"
                   style={{ flex: 1, minWidth: "200px" }}
                 >
-                  <option value="">Select your universityΓÇª</option>
+                  <option value="">Select your university...</option>
                   {universities.map((u) => (
                     <option key={u.slug} value={u.slug}>
                       {u.name}
@@ -337,7 +337,7 @@ export default function HomePage() {
                 </Link>
               </div>
               <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-                More universities coming soon ΓÇö{" "}
+                More universities coming soon —{" "}
                 <a href="#" style={{ color: "var(--brand-600)", textDecoration: "none", fontWeight: 500 }}>
                   Request yours
                 </a>
@@ -378,7 +378,7 @@ export default function HomePage() {
             {/* Request University CTA */}
             <div style={{ textAlign: "center", paddingBottom: "2rem", animation: "fadeInUp 0.5s ease-out 0.5s both" }}>
               <a href="/request-university" style={{ fontSize: "0.875rem", color: "var(--text-muted)", textDecoration: "none", borderBottom: "1px dashed var(--text-muted)", paddingBottom: "1px" }}>
-                ≡ƒÅ¢∩╕Å Don&apos;t see your university? Request it ΓåÆ
+                🏢 Don&apos;t see your university? Request it →
               </a>
             </div>
           </div>
@@ -412,7 +412,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ΓöÇΓöÇ Stats Bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── Stats Bar ───────────────────────────────────────────── */}
         <section style={{ background: "linear-gradient(135deg, var(--brand-600) 0%, var(--accent-500) 100%)", padding: "2.5rem 1.5rem" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "2rem", textAlign: "center" }}>
             {stats.map((s) => (
@@ -425,7 +425,7 @@ export default function HomePage() {
         </section>
 
 
-        {/* ΓöÇΓöÇ Universities ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── Universities ────────────────────────────────────────── */}
         <section id="universities" style={{ padding: "6rem 1.5rem", background: "var(--bg-subtle)" }}>
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
             <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
@@ -497,7 +497,7 @@ export default function HomePage() {
                 {!reqMode ? (
 
                   <>
-                    <div style={{ fontSize: "2.5rem" }}>≡ƒÅ½</div>
+                    <div style={{ fontSize: "2.5rem" }}>🏛️</div>
                     <div>
                       <h3 style={{ fontWeight: 700, marginBottom: "0.375rem" }}>Don't see your university?</h3>
                       <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Submit a request and our team will onboard it within 48 hours.</p>
@@ -557,7 +557,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ΓöÇΓöÇ Features ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── Features ─────────────────────────────────────────────── */}
         <section id="features" style={{ padding: "6rem 1.5rem" }}>
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
             <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
@@ -587,7 +587,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ΓöÇΓöÇ How It Works ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── How It Works ────────────────────────────────────────── */}
         <section id="how-it-works" style={{ padding: "6rem 1.5rem", background: "var(--bg-subtle)" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto", textAlign: "center" }}>
             <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--brand-600)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.75rem" }}>How It Works</p>
@@ -618,7 +618,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ΓöÇΓöÇ CTA ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── CTA ─────────────────────────────────────────────────── */}
         <section style={{ padding: "6rem 1.5rem", textAlign: "center" }}>
           <div style={{ maxWidth: "600px", margin: "0 auto" }}>
             <h2 style={{ fontSize: "clamp(2rem, 4.5vw, 3rem)", fontWeight: 900, marginBottom: "1.25rem" }}>
@@ -641,7 +641,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ΓöÇΓöÇ Footer ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ── Footer ──────────────────────────────────────────────── */}
         <footer style={{
           borderTop: "1px solid var(--border)",
           padding: "2.5rem 1.5rem",
@@ -661,7 +661,7 @@ export default function HomePage() {
               {icons.instagram}
             </a>
           </div>
-          <p>┬⌐ 2026 Arvix AI. Built for students, by builders.</p>
+          <p>© 2026 Arvix AI. Built for students, by builders.</p>
         </footer>
       </main>
 

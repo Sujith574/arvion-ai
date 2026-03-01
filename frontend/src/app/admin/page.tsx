@@ -84,7 +84,7 @@ export default function AdminDashboard() {
                     categories: { admission: 420, hostel: 215, fees: 198, exams: 172, scholarships: 144, emergency: 98 },
                 });
                 setLogs([
-                    { id: "1", query: "What is the fee for B.Tech CSE?", response: "The fee for B.Tech CSE at LPU is approximately Γé╣1.6L per year...", confidence_score: 0.91, category: "fees", timestamp: new Date().toISOString(), used_fallback_llm: false },
+                    { id: "1", query: "What is the fee for B.Tech CSE?", response: "The fee for B.Tech CSE at LPU is approximately ₹1.6L per year...", confidence_score: 0.91, category: "fees", timestamp: new Date().toISOString(), used_fallback_llm: false },
                     { id: "2", query: "How to apply for hostel?", response: "You can apply for hostel through the student portal...", confidence_score: 0.88, category: "hostel", timestamp: new Date().toISOString(), used_fallback_llm: false },
                 ]);
             })
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
                 <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "4rem" }}>
                     <div style={{ textAlign: "center" }}>
                         <div style={{ width: "48px", height: "48px", border: "3px solid var(--border)", borderTopColor: "var(--brand-500)", borderRadius: "50%", margin: "0 auto 1rem", animation: "spin 0.8s linear infinite" }} />
-                        <p style={{ color: "var(--text-muted)" }}>Loading dashboardΓÇª</p>
+                        <p style={{ color: "var(--text-muted)" }}>Loading dashboard...</p>
                     </div>
                     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                 </div>
@@ -126,17 +126,17 @@ export default function AdminDashboard() {
         <>
             <Navbar />
             <main className="admin-page-main" style={{ paddingTop: "4rem", minHeight: "100vh", background: "var(--bg-subtle)" }}>
-                {/* ΓöÇΓöÇ Header ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                {/* ── Header ──────────────────────────────────────────────── */}
                 <div style={{ background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%)", padding: "2rem max(1rem, 4vw)", color: "white" }}>
                     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
                             <div>
                                 <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 800, color: "white", margin: 0 }}>Admin Dashboard</h1>
-                                <p style={{ color: "rgb(255 255 255 / 0.7)", marginTop: "0.375rem" }}>Lovely Professional University ┬╖ Arvix AI Analytics</p>
+                                <p style={{ color: "rgb(255 255 255 / 0.7)", marginTop: "0.375rem" }}>Lovely Professional University · Arvix AI Analytics</p>
                             </div>
                             <div style={{ display: "flex", gap: "0.5rem" }}>
                                 <div style={{ padding: "0.375rem 0.875rem", borderRadius: "999px", background: "rgb(255 255 255 / 0.15)", color: "white", fontSize: "0.8125rem", fontWeight: 600 }}>
-                                    ≡ƒƒó System Online
+                                    🟢 System Online
                                 </div>
                             </div>
                         </div>
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.25rem max(0.75rem, 3vw)" }}>
-                    {/* ΓöÇΓöÇ Stats Grid ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Stats Grid ────────────────────────────────────────── */}
                     <div className="admin-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "0.875rem", marginBottom: "1.5rem" }}>
                         {statCards.map((card, i) => (
                             <div key={i} className="card" style={{ padding: "1.5rem" }}>
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                         ))}
                     </div>
 
-                    {/* ΓöÇΓöÇ Tabs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Tabs ──────────────────────────────────────────────── */}
                     <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "1.5rem", paddingBottom: "2px" }}>
                         <div style={{ display: "flex", gap: "0.25rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "max-content", minWidth: "100%" }}>
                             {([
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* ΓöÇΓöÇ Overview ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Overview ────────────────────────────────────────── */}
                     {activeTab === "overview" && (
                         <div className="admin-overview-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
                             {/* Category Chart */}
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {/* ΓöÇΓöÇ Query Logs ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Query Logs ─────────────────────────────────────── */}
                     {activeTab === "logs" && (
                         <div className="card" style={{ overflow: "hidden" }}>
                             <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
                                                     </span>
                                                 </td>
                                                 <td style={{ padding: "1rem 1.25rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
-                                                    {log.timestamp ? new Date(log.timestamp).toLocaleString() : "ΓÇö"}
+                                                    {log.timestamp ? new Date(log.timestamp).toLocaleString() : "—"}
                                                 </td>
                                             </tr>
                                         ))}
@@ -326,7 +326,7 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {/* ΓöÇΓöÇ Knowledge Base ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Knowledge Base ──────────────────────────────────── */}
                     {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={activeSlug} />}
 
                     {activeTab === "cms" && <CMSSectionTab token={token!} universitySlug={activeSlug} />}
@@ -348,10 +348,10 @@ export default function AdminDashboard() {
                     {activeTab === "university" && isSuperAdmin && <UniversityTab token={token!} />}
 
 
-                    {/* ΓöÇΓöÇ Data File Management ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Data File Management ────────────────────── */}
                     {activeTab === "data" && <DataTab token={token!} />}
 
-                    {/* ΓöÇΓöÇ Feedback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+                    {/* ── Feedback ───────────────────────────────── */}
                     {activeTab === "feedback" && <FeedbackTab token={token!} universitySlug={activeSlug} />}
                 </div>
             </main>

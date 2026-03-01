@@ -88,7 +88,7 @@ export default function UniversityDashboard() {
                 <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "4rem" }}>
                     <div style={{ textAlign: "center" }}>
                         <div style={{ width: "48px", height: "48px", border: "3px solid var(--border)", borderTopColor: "var(--brand-500)", borderRadius: "50%", margin: "0 auto 1rem", animation: "spin 0.8s linear infinite" }} />
-                        <p style={{ color: "var(--text-muted)" }}>Loading university data…</p>
+                        <p style={{ color: "var(--text-muted)" }}>Loading university data...</p>
                     </div>
                 </div>
                 <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
