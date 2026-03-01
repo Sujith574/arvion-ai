@@ -240,10 +240,16 @@ class RAGService:
         top_score = context_docs[0].get("similarity", 0.0) if context_docs else 0.0
         kb_context = ""
 
-        # Cost Control: If confidence is extremely low (< MIN_CONFIDENCE_FOR_LLM), 
-        # and it's not a generic query, we might skip Gemini to save costs.
-        if top_score < settings.MIN_CONFIDENCE_FOR_LLM:
-            logger.info(f"[RAG] Confidence {top_score:.2f} too low. Skipping LLM to save costs.")
+        # Use Gemini for synthesis if:
+        # a) High confidence match exists (> 0.45)
+        # b) Direct keyword match for university info (even if low vector score)
+        # c) Comparative query detected
+        should_use_gemini = (top_score >= settings.MIN_CONFIDENCE_FOR_LLM) or \
+                            (_INFO_KEYWORDS_RE.search(query)) or \
+                            ("vs" in query.lower() or "compare" in query.lower())
+
+        if not should_use_gemini:
+            logger.info(f"[RAG] Confidence {top_score:.2f} too low and no keywords. Skipping LLM to save costs.")
             return {
                 "answer": f"I am here to assist you with everything related to {uni_name}. Whether you need details about admissions, placements, scholarships, or campus life, I would be happy to help you navigate your journey here.",
                 "category": "general",
@@ -252,10 +258,16 @@ class RAGService:
                 "used_fallback": True
             }
 
-        if top_score > 0.45:
+        if top_score > 0.40:
             kb_context = "\n\n".join([
                 f"Topic: {d.get('category')}\nQ: {d.get('question')}\nA: {d.get('answer')}"
                 for d in context_docs
+            ])
+        elif top_score > 0.15:
+            # Include even weak matches as "related data"
+            kb_context = "Related Data points from KB:\n" + "\n".join([
+                f"- {d.get('question')}: {d.get('answer')}"
+                for d in context_docs[:3]
             ])
 
         answer = await generate_response(
