@@ -182,6 +182,14 @@ class CreateUniversityRequest(BaseModel):
     name: str
     slug: str
     description: str = ""
+    location: str = ""
+    established: str = ""
+    students_count: str = ""
+    programs_count: str = ""
+    accreditation: str = ""
+    website_url: str = ""
+    hero_image_url: str = ""
+    logo_url: str = ""
 
 @router.post("/universities")
 async def create_university(req: CreateUniversityRequest, _=Depends(require_admin)):
@@ -197,6 +205,14 @@ async def create_university(req: CreateUniversityRequest, _=Depends(require_admi
         "name": req.name,
         "slug": slug,
         "description": req.description,
+        "location": req.location,
+        "established": req.established,
+        "students_count": req.students_count,
+        "programs_count": req.programs_count,
+        "accreditation": req.accreditation,
+        "website_url": req.website_url,
+        "hero_image_url": req.hero_image_url,
+        "logo_url": req.logo_url,
         "status": "active",
         "active": True,
         "confidence_threshold": 0.75,
@@ -215,6 +231,13 @@ class UpdateUniversityRequest(BaseModel):
     location: str | None = None
     established: str | None = None
     students_count: str | None = None
+    programs_count: str | None = None
+    accreditation: str | None = None
+    rankings: str | None = None
+    website_url: str | None = None
+    hero_image_url: str | None = None
+    logo_url: str | None = None
+    stats: list[dict] | None = None
     confidence_threshold: float | None = None
     active: bool | None = None
 
@@ -366,3 +389,27 @@ async def delete_user(uid: str, _=Depends(require_super_admin)):
         raise HTTPException(404, "User not found")
     doc_ref.delete()
     return {"message": f"User {uid} deleted"}
+@router.get("/audit-logs")
+async def get_audit_logs(university_slug: str | None = None, limit: int = 100, admin_data=Depends(require_admin)):
+    """
+    Retrieve audit logs.
+    Super Admin: All logs or filtered by university_slug.
+    Uni Admin: Only logs for their university_id.
+    """
+    db = get_db()
+    is_super = admin_data.get("role") == "super_admin"
+    
+    # Uni Admin must only see their own tenant logs
+    if not is_super:
+        university_slug = admin_data.get("university_id")
+        if not university_slug:
+            raise HTTPException(403, "Admin has no assigned university.")
+
+    query = db.collection("audit_logs").order_by("timestamp", direction="DESCENDING").limit(limit)
+    
+    if university_slug:
+        query = query.where("tenant_id", "==", university_slug)
+        
+    docs = query.stream()
+    logs = [{"id": d.id, **d.to_dict()} for d in docs]
+    return {"logs": logs, "total": len(logs)}

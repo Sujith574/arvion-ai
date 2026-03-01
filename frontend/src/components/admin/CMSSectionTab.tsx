@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getCMSEntries, createCMSEntry, updateCMSEntry, deleteCMSEntry, getCMSSections, getCMSAuditLogs } from "@/lib/api";
+import FileManager from "./FileManager";
 
 interface CMSSectionTabProps {
     token: string;
@@ -23,6 +24,10 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
     const [metaKey, setMetaKey] = useState("");
     const [metaValue, setMetaValue] = useState("");
     const [metadata, setMetadata] = useState<Record<string, any>>({});
+
+    const [showFilePicker, setShowFilePicker] = useState(false);
+    const [redirectType, setRedirectType] = useState<string>("none");
+    const [redirectValue, setRedirectValue] = useState("");
 
     const fetchSections = async () => {
         try {
@@ -75,19 +80,26 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
         setMetadata({});
         setMetaKey("");
         setMetaValue("");
+        setRedirectType("none");
+        setRedirectValue("");
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         try {
+            const finalMetadata = {
+                ...metadata,
+                redirect_type: redirectType,
+                redirect_value: redirectValue
+            };
             const data = {
                 section_id: activeSectionId,
                 university_id: universitySlug,
                 title,
                 content,
                 priority,
-                metadata
+                metadata: finalMetadata
             };
 
             if (editId) {
@@ -110,6 +122,8 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
         setContent(entry.content);
         setPriority(entry.priority || 0);
         setMetadata(entry.metadata || {});
+        setRedirectType(entry.metadata?.redirect_type || "none");
+        setRedirectValue(entry.metadata?.redirect_value || "");
     };
 
     const handleDelete = async (id: string) => {
@@ -135,10 +149,29 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
         setMetadata(next);
     };
 
+    const onFileSelected = (file: any) => {
+        setRedirectValue(file.url);
+        setShowFilePicker(false);
+        if (redirectType === "none" || redirectType === "url") setRedirectType("file");
+    };
+
     const activeSection = sections.find(s => s.id === activeSectionId);
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {/* File Picker Modal */}
+            {showFilePicker && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", backdropFilter: "blur(4px)" }}>
+                    <div className="card" style={{ maxWidth: "800px", width: "100%", maxHeight: "85vh", overflowY: "auto", padding: "2rem", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+                            <h2 style={{ fontSize: "1.25rem", fontWeight: 700 }}>Select Media Library</h2>
+                            <button onClick={() => setShowFilePicker(false)} style={{ border: "none", background: "none", fontSize: "1.5rem", cursor: "pointer", color: "var(--text-muted)" }}>&times;</button>
+                        </div>
+                        <FileManager token={token} universitySlug={universitySlug} onSelect={onFileSelected} />
+                    </div>
+                </div>
+            )}
+
             {/* Horizontal Sections Nav */}
             <div style={{
                 display: "flex",
@@ -177,7 +210,7 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
                 <div className="card" style={{ padding: "1.75rem", alignSelf: "start" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
                         <h2 style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-                            {editId ? "Edit Entry" : "Add Content"}
+                            {editId ? "Edit Entry" : `Add to ${activeSection?.name || "Section"}`}
                         </h2>
                         {editId && <button onClick={resetForm} style={{ color: "var(--brand-600)", border: "none", background: "none", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}>Cancel Edit</button>}
                     </div>
@@ -190,12 +223,12 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
                                 className="input"
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
-                                placeholder="e.g. Admission Deadline 2026"
+                                placeholder="e.g. Admission Guide"
                             />
                         </div>
 
                         <div>
-                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", marginBottom: "0.4rem" }}>PRIMARY CONTENT</label>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", marginBottom: "0.4rem" }}>CONTENT / DESCRIPTION</label>
                             <textarea
                                 required
                                 rows={4}
@@ -203,7 +236,7 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
                                 value={content}
                                 onChange={e => setContent(e.target.value)}
                                 style={{ resize: "vertical" }}
-                                placeholder="Describe the information clearly..."
+                                placeholder="Details..."
                             />
                         </div>
 
@@ -214,43 +247,55 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
                             </div>
                         </div>
 
+                        {/* Redirection / Action Logic */}
+                        <div style={{ background: "var(--bg-subtle)", padding: "1rem", borderRadius: "12px", border: "1px solid var(--border)" }}>
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", marginBottom: "0.6rem" }}>ACTION / REDIRECTION</label>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                                <select
+                                    className="input"
+                                    value={redirectType}
+                                    onChange={(e) => setRedirectType(e.target.value)}
+                                >
+                                    <option value="none">No Action</option>
+                                    <option value="chatbot">Ask AI / Chatbot</option>
+                                    <option value="url">External Link</option>
+                                    <option value="file">PDF / Document File</option>
+                                    <option value="whatsapp">WhatsApp Outreach</option>
+                                    <option value="call">Call Support</option>
+                                </select>
+                                <button type="button" onClick={() => setShowFilePicker(true)} style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700 }}>Browse Library</button>
+                            </div>
+                            {redirectType !== "none" && (
+                                <input
+                                    className="input"
+                                    placeholder={redirectType === "chatbot" ? "Pre-fill question..." : "URL, Phone, or File Link"}
+                                    value={redirectValue}
+                                    onChange={e => setRedirectValue(e.target.value)}
+                                />
+                            )}
+                        </div>
+
                         {/* Metadata Builder */}
                         <div>
-                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", marginBottom: "0.6rem" }}>ADDITIONAL FIELDS (Key-Value)</label>
-
+                            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", marginBottom: "0.6rem" }}>CUSTOM ATTRIBUTES (Key-Value)</label>
                             <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                                <input placeholder="Key (e.g. Phone)" className="input" style={{ fontSize: "0.8125rem", padding: "0.5rem 0.75rem" }} value={metaKey} onChange={e => setMetaKey(e.target.value)} />
-                                <input placeholder="Value" className="input" style={{ fontSize: "0.8125rem", padding: "0.5rem 0.75rem" }} value={metaValue} onChange={e => setMetaValue(e.target.value)} />
-                                <button type="button" onClick={addMeta} style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", background: "var(--bg-subtle)", color: "var(--text-primary)", fontWeight: 700, cursor: "pointer" }}>Add</button>
+                                <input placeholder="e.g. Duration" className="input" style={{ fontSize: "0.8125rem" }} value={metaKey} onChange={e => setMetaKey(e.target.value)} />
+                                <input placeholder="e.g. 4 Years" className="input" style={{ fontSize: "0.8125rem" }} value={metaValue} onChange={e => setMetaValue(e.target.value)} />
+                                <button type="button" onClick={addMeta} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.75rem" }}>Add</button>
                             </div>
-
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                                {Object.entries(metadata).map(([k, v]) => (
-                                    <div key={k} style={{
-                                        padding: "0.4rem 0.75rem",
-                                        borderRadius: "6px",
-                                        background: "var(--brand-50)",
-                                        border: "1px solid var(--brand-100)",
-                                        fontSize: "0.75rem",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "0.5rem"
-                                    }}>
+                                {Object.entries(metadata).filter(([k]) => k !== "redirect_type" && k !== "redirect_value").map(([k, v]) => (
+                                    <div key={k} style={{ padding: "0.4rem 0.75rem", borderRadius: "6px", background: "var(--brand-50)", border: "1px solid var(--brand-100)", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                                         <span style={{ fontWeight: 800, color: "var(--brand-700)" }}>{k}:</span>
                                         <span style={{ color: "var(--text-secondary)" }}>{String(v)}</span>
-                                        <button type="button" onClick={() => removeMeta(k)} style={{ border: "none", background: "none", color: "#f43f5e", cursor: "pointer", fontSize: "1rem", lineHeight: 1 }}>&times;</button>
+                                        <button type="button" onClick={() => removeMeta(k)} style={{ border: "none", background: "none", color: "#f43f5e", cursor: "pointer", fontWeight: 900 }}>&times;</button>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="btn-primary"
-                            style={{ padding: "0.875rem", borderRadius: "12px", width: "100%", border: "none" }}
-                        >
-                            {submitting ? "Processing..." : (editId ? "Update Entry" : "Publish to Section")}
+                        <button type="submit" disabled={submitting} className="btn-primary" style={{ padding: "1rem", borderRadius: "12px", width: "100%", border: "none" }}>
+                            {submitting ? "Processing..." : (editId ? "Save Changes" : "Publish Content")}
                         </button>
                     </form>
                 </div>
@@ -260,82 +305,43 @@ export default function CMSSectionTab({ token, universitySlug }: CMSSectionTabPr
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                         <div style={{ display: "flex", gap: "1rem" }}>
                             <h2 style={{ fontSize: "1.125rem", fontWeight: 700 }}>{activeSection?.name || "Entries"}</h2>
-                            <button
-                                onClick={() => setShowAudit(!showAudit)}
-                                style={{ background: "none", border: "none", color: "var(--brand-600)", cursor: "pointer", fontSize: "0.8125rem", fontWeight: 600 }}
-                            >
-                                {showAudit ? "⬅️ Back to Entries" : "📊 View Activity Log"}
+                            <button onClick={() => setShowAudit(!showAudit)} style={{ background: "none", border: "none", color: "var(--brand-600)", cursor: "pointer", fontSize: "0.8125rem", fontWeight: 600 }}>
+                                {showAudit ? "⬅️ Back to Entries" : "📊 Activity Log"}
                             </button>
                         </div>
-                        <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>{entries.length} published items</p>
                     </div>
 
                     {loading ? (
-                        <div style={{ padding: "4rem", textAlign: "center", color: "var(--text-muted)" }}>Loading content...</div>
+                        <div style={{ padding: "4rem", textAlign: "center", color: "var(--text-muted)" }}>Loading...</div>
                     ) : showAudit ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                            {auditLogs.length === 0 ? (
-                                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>No activity recorded.</div>
-                            ) : (
-                                auditLogs.map((log) => (
-                                    <div key={log.id} style={{ padding: "0.75rem", background: "var(--bg-subtle)", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.75rem" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ fontWeight: 700, textTransform: "uppercase", color: log.action === "soft_delete" ? "#ef4444" : "var(--brand-600)" }}>{log.action.replace("_", " ")}</span>
-                                            <span style={{ color: "var(--text-muted)" }}>{new Date(log.timestamp).toLocaleString()}</span>
-                                        </div>
-                                        <div style={{ marginTop: "0.25rem", color: "var(--text-secondary)" }}>
-                                            Entry ID: {log.entry_id} | Section: {log.section_id}
-                                        </div>
+                            {auditLogs.map((log) => (
+                                <div key={log.id} style={{ padding: "0.75rem", background: "var(--bg-subtle)", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.75rem" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontWeight: 700, textTransform: "uppercase", color: "var(--brand-600)" }}>{log.action}</span>
+                                        <span style={{ color: "var(--text-muted)" }}>{new Date(log.timestamp).toLocaleString()}</span>
                                     </div>
-                                ))
-                            )}
+                                    <div style={{ marginTop: "0.25rem", color: "var(--text-secondary)" }}>Entry: {log.entry_id}</div>
+                                </div>
+                            ))}
                         </div>
                     ) : entries.length === 0 ? (
-                        <div style={{ padding: "4rem", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "12px", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                            No entries in this section yet.
-                        </div>
+                        <div style={{ padding: "4rem", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "12px", color: "var(--text-muted)" }}>No entries found.</div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                             {entries.map(entry => (
-                                <div key={entry.id} style={{
-                                    padding: "1.25rem",
-                                    borderRadius: "12px",
-                                    border: "1px solid var(--border)",
-                                    background: "var(--bg-subtle)",
-                                    position: "relative"
-                                }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem", paddingRight: "4rem" }}>
+                                <div key={entry.id} style={{ padding: "1.25rem", borderRadius: "12px", border: "1px solid var(--border)", background: "var(--bg-subtle)", position: "relative" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
                                         <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>{entry.title}</h3>
-                                        <span style={{
-                                            fontSize: "0.65rem", fontWeight: 800, padding: "0.2rem 0.5rem", borderRadius: "4px", textTransform: "uppercase",
-                                            background: entry.status === "approved" ? "rgba(16, 185, 129, 0.1)" : entry.status === "pending" || entry.status === "pending_delete" ? "rgba(245, 158, 11, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                                            color: entry.status === "approved" ? "#10B981" : entry.status === "pending" || entry.status === "pending_delete" ? "#F59E0B" : "#EF4444"
-                                        }}>
-                                            {entry.status || "approved"}
-                                        </span>
+                                        <span style={{ fontSize: "0.65rem", fontWeight: 800, padding: "0.2rem 0.5rem", borderRadius: "4px", background: entry.status === "approved" ? "var(--brand-50)" : "#fff7ed", color: entry.status === "approved" ? "var(--brand-600)" : "#c2410c" }}>{entry.status}</span>
                                     </div>
-                                    <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{entry.content}</p>
-
-                                    {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1rem" }}>
-                                            {Object.entries(entry.metadata).map(([k, v]) => (
-                                                <div key={k} style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "6px" }}>
-                                                    <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>{k}:</span> {String(v)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>{entry.content}</p>
 
                                     <div style={{ position: "absolute", top: "1rem", right: "1rem", display: "flex", gap: "0.5rem" }}>
-                                        {entry.status !== "pending_delete" && (
-                                            <>
-                                                <button onClick={() => handleEdit(entry)} style={{ padding: "0.4rem", borderRadius: "6px", border: "1px solid var(--border)", background: "white", cursor: "pointer" }}>✏️</button>
-                                                <button onClick={() => handleDelete(entry.id)} style={{ padding: "0.4rem", borderRadius: "6px", border: "1px solid #fee2e2", background: "#fef2f2", color: "#ef4444", cursor: "pointer" }}>🗑️</button>
-                                            </>
-                                        )}
+                                        <button onClick={() => handleEdit(entry)} style={{ padding: "0.4rem", borderRadius: "6px", border: "1px solid var(--border)", background: "white", cursor: "pointer" }}>✏️</button>
+                                        <button onClick={() => handleDelete(entry.id)} style={{ padding: "0.4rem", borderRadius: "6px", border: "1px solid #fee2e2", background: "#fef2f2", color: "#ef4444", cursor: "pointer" }}>🗑️</button>
                                     </div>
                                 </div>
-
                             ))}
                         </div>
                     )}

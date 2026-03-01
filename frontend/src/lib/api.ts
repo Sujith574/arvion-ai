@@ -29,10 +29,27 @@ export interface University {
     name: string;
     slug: string;
     logo_url?: string;
+    hero_image_url?: string;
     location?: string;
     description?: string;
     established?: string;
     students_count?: string;
+    programs_count?: string;
+    accreditation?: string;
+    rankings?: string;
+    website_url?: string;
+    stats?: Array<{ label: string; value: string; icon?: string }>;
+    social_links?: Record<string, string>;
+}
+
+export interface UniversityFile {
+    id: string;
+    university_id: string;
+    filename: string;
+    url: string;
+    content_type: string;
+    size: number;
+    created_at: string;
 }
 
 export interface AuthResponse {
@@ -60,6 +77,18 @@ function getHeaders(token?: string): HeadersInit {
 
 async function handleResponse<T>(res: Response): Promise<T> {
     if (!res.ok) {
+        // Handle 401 Unauthorized centrally
+        if (res.status === 401) {
+            // Attempt to clear session if on client side
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("arvix-store");
+                // Force redirect to login if not already there
+                if (!window.location.pathname.includes("/auth/login")) {
+                    window.location.href = "/auth/login?error=expired";
+                }
+            }
+        }
+
         const err = await res.json().catch(() => ({ detail: res.statusText }));
 
         let message = "An error occurred";
@@ -233,6 +262,31 @@ export async function getEmergencyContacts(
     return handleResponse(res);
 }
 
+export async function upsertEmergencyContact(
+    universitySlug: string,
+    data: any,
+    token: string
+) {
+    const res = await fetch(`${API_BASE}/api/emergency/${universitySlug}`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+}
+
+export async function deleteEmergencyCategory(
+    universitySlug: string,
+    category: string,
+    token: string
+) {
+    const res = await fetch(`${API_BASE}/api/emergency/${universitySlug}/${category}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+    });
+    return handleResponse(res);
+}
+
 // ── Admin API ──────────────────────────────────────────────────
 export async function getAdminStats(
     universitySlug: string,
@@ -271,6 +325,18 @@ export async function getChatFeedback(
         `${API_BASE}/api/admin/feedback/${universitySlug}?limit=${limit}`,
         { headers: getHeaders(token) }
     );
+    return handleResponse(res);
+}
+
+export async function getAuditLogs(
+    token: string,
+    universitySlug?: string,
+    limit = 100
+): Promise<{ logs: any[]; total: number }> {
+    const url = universitySlug
+        ? `${API_BASE}/api/admin/audit-logs?university_slug=${universitySlug}&limit=${limit}`
+        : `${API_BASE}/api/admin/audit-logs?limit=${limit}`;
+    const res = await fetch(url, { headers: getHeaders(token) });
     return handleResponse(res);
 }
 
@@ -511,6 +577,33 @@ export async function deactivateUser(uid: string, token: string) {
 
 export async function deleteUser(uid: string, token: string) {
     const res = await fetch(`${API_BASE}/api/admin/users/${uid}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ message: string }>(res);
+}
+
+// ── Files API ──────────────────────────────────────────────────
+export async function uploadUniversityFile(universityId: string, file: File, token: string) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE}/api/files/upload?university_id=${universityId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+    });
+    return handleResponse<{ url: string; filename: string }>(res);
+}
+
+export async function listUniversityFiles(universityId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/files/${universityId}`, {
+        headers: getHeaders(token),
+    });
+    return handleResponse<{ files: UniversityFile[] }>(res);
+}
+
+export async function deleteUniversityFile(fileId: string, token: string) {
+    const res = await fetch(`${API_BASE}/api/files/${fileId}`, {
         method: "DELETE",
         headers: getHeaders(token),
     });

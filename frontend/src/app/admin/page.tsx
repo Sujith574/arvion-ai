@@ -8,11 +8,14 @@ import { useStore } from "@/store/useStore";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import KnowledgeTab from "@/components/admin/KnowledgeTab";
 import UniversityTab from "@/components/admin/UniversityTab";
+import UniversityMetadataTab from "@/components/admin/UniversityMetadataTab";
 import DataTab from "@/components/admin/DataTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
 import CMSSectionTab from "@/components/admin/CMSSectionTab";
 import ApprovalsTab from "@/components/admin/ApprovalsTab";
 import UsersTab from "@/components/admin/UsersTab";
+import EmergencyTab from "@/components/admin/EmergencyTab";
+import AuditTab from "@/components/admin/AuditTab";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -48,7 +51,7 @@ export default function AdminDashboard() {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals" | "users">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "logs" | "knowledge" | "university" | "profile" | "data" | "feedback" | "cms" | "approvals" | "users" | "emergency" | "audit">("overview");
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -163,10 +166,10 @@ export default function AdminDashboard() {
                     <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "1.5rem", paddingBottom: "2px" }}>
                         <div style={{ display: "flex", gap: "0.25rem", background: "var(--surface)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "max-content", minWidth: "100%" }}>
                             {([
-                                "overview", "logs", "knowledge", "cms",
-                                ...(isSuperAdmin ? ["approvals", "university", "users"] : []),
+                                "overview", "logs", "knowledge", "cms", "profile", "emergency",
+                                ...(isSuperAdmin ? ["approvals", "university", "users", "audit"] : []),
                                 "data", "feedback"
-                            ] as Array<"overview" | "logs" | "knowledge" | "university" | "data" | "feedback" | "cms" | "approvals" | "users">).map((tab) => (
+                            ] as Array<"overview" | "logs" | "knowledge" | "university" | "profile" | "data" | "feedback" | "cms" | "approvals" | "users" | "emergency" | "audit">).map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -181,11 +184,14 @@ export default function AdminDashboard() {
                                     {tab === "logs" && "📋 Logs"}
                                     {tab === "knowledge" && "🧠 Knowledge"}
                                     {tab === "cms" && "📱 Dynamic CMS"}
+                                    {tab === "profile" && "🏛️ University Profile"}
                                     {tab === "approvals" && "🛡️ Approvals"}
                                     {tab === "users" && "👥 Users"}
                                     {tab === "university" && isSuperAdmin && "🏫 Partner Approval"}
                                     {tab === "data" && "📂 Data Files"}
                                     {tab === "feedback" && "👍🏼 Feedback"}
+                                    {tab === "emergency" && "🚨 Emergency"}
+                                    {tab === "audit" && "🛡️ Audit Logs"}
                                 </button>
                             ))}
                         </div>
@@ -323,8 +329,14 @@ export default function AdminDashboard() {
                     {/* ΓöÇΓöÇ Knowledge Base ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
                     {activeTab === "knowledge" && <KnowledgeTab token={token!} universitySlug={activeSlug} />}
 
-                    {/* ── Dynamic CMS Content ────────────────────── */}
                     {activeTab === "cms" && <CMSSectionTab token={token!} universitySlug={activeSlug} />}
+                    {activeTab === "profile" && <UniversityMetadataTab token={token!} universitySlug={activeSlug} />}
+
+                    {/* ── Emergency Contacts ─────────────────────── */}
+                    {activeTab === "emergency" && <EmergencyTab token={token!} universitySlug={activeSlug} />}
+
+                    {/* ── Security Audit Logs ─────────────────────── */}
+                    {activeTab === "audit" && <AuditTab token={token!} universitySlug={isSuperAdmin ? undefined : activeSlug} />}
 
                     {/* ── Super Admin Approvals ──────────────────── */}
                     {activeTab === "approvals" && isSuperAdmin && <ApprovalsTab token={token!} />}

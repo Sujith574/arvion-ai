@@ -8,10 +8,47 @@ scoped per university (university_id).
 Categories: medical, hostel, fee, lost_id, exam
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.services.firebase import get_db
+from app.dependencies import require_admin, verify_university_access
+from pydantic import BaseModel
+from typing import List, Optional
 
 router = APIRouter()
+
+class Contact(BaseModel):
+    name: str
+    phone: str
+    alternate_phone: Optional[str] = None
+    email: Optional[str] = None
+    available: str = "24/7"
+
+class EmergencyCategoryModel(BaseModel):
+    category: str
+    title: str
+    icon: str
+    contacts: List[Contact]
+    location: str
+    steps: List[str]
+    priority: int = 0
+    is_active: bool = True
+    is_locked: bool = False
+    version: int = 1
+
+def log_emergency_audit(tenant_id: str, action: str, entity_id: str, user_id: str, old_data: dict = None, new_data: dict = None):
+    """SaaS-grade audit logging for emergency modules."""
+    db = get_db()
+    db.collection("audit_logs").add({
+        "tenant_id": tenant_id,
+        "action": action,
+        "entity": "emergency_contact",
+        "entity_id": entity_id,
+        "performed_by": user_id,
+        "timestamp": datetime.utcnow().isoformat(),
+        "previous_data": old_data,
+        "new_data": new_data
+    })
+
 
 # Hardcoded LPU emergency data as fallback while Firestore is being populated
 LPU_EMERGENCY_FALLBACK = {
@@ -129,16 +166,16 @@ LPU_EMERGENCY_FALLBACK = {
 
 @router.get("/{university_slug}")
 async def get_emergency_contacts(university_slug: str):
-    """Return all emergency categories for a university."""
+    """Return all active emergency categories for a university."""
     db = get_db()
     docs = (
         db.collection("emergency_contacts")
         .where("university_id", "==", university_slug)
+        .where("is_active", "==", True)
         .stream()
     )
     contacts = {doc.to_dict().get("category"): doc.to_dict() for doc in docs}
 
-    # Fall back to hardcoded data for LPU if Firestore is empty
     if not contacts and university_slug == "lpu":
         contacts = LPU_EMERGENCY_FALLBACK
 
@@ -147,12 +184,13 @@ async def get_emergency_contacts(university_slug: str):
 
 @router.get("/{university_slug}/{category}")
 async def get_emergency_category(university_slug: str, category: str):
-    """Return a specific emergency category."""
+    """Return a specific active emergency category."""
     db = get_db()
     docs = (
         db.collection("emergency_contacts")
         .where("university_id", "==", university_slug)
         .where("category", "==", category)
+        .where("is_active", "==", True)
         .stream()
     )
     results = [doc.to_dict() for doc in docs]
@@ -163,3 +201,82 @@ async def get_emergency_category(university_slug: str, category: str):
         raise HTTPException(404, "Emergency category not found")
 
     return {"emergency": results[0]}
+
+
+@router.post("/{university_slug}")
+async def upsert_emergency_contact(
+    university_slug: str, 
+    data: EmergencyCategoryModel, 
+    admin_data=Depends(require_admin)
+):
+    """Add or update an emergency category (with strict Super Admin locking)."""
+    verify_university_access(admin_data, university_slug)
+    db = get_db()
+    is_super = admin_data.get("role") == "super_admin"
+    
+    doc_id = f"{university_slug}_{data.category}"
+    doc_ref = db.collection("emergency_contacts").document(doc_id)
+    doc = doc_ref.get()
+    
+    old_data = None
+    if doc.exists:
+        old_data = doc.to_dict()
+        # Enforce Lock: If locked, ONLY Super Admin can edit
+        if old_data.get("is_locked") and not is_super:
+            raise HTTPException(403, "This contact category is locked by Global Admin and cannot be modified locally.")
+        
+        # Increment version
+        data.version = old_data.get("version", 1) + 1
+
+    payload = data.dict()
+    payload["university_id"] = university_slug
+    payload["updated_at"] = datetime.utcnow().isoformat()
+    payload["updated_by"] = admin_data["uid"]
+    
+    if not old_data:
+        payload["created_at"] = payload["updated_at"]
+        payload["created_by"] = admin_data["uid"]
+
+    doc_ref.set(payload)
+    
+    action = "UPDATE" if old_data else "CREATE"
+    if payload.get("is_locked") != (old_data.get("is_locked") if old_data else False):
+        action = "LOCK" if payload.get("is_locked") else "UNLOCK"
+
+    log_emergency_audit(university_slug, action, doc_id, admin_data["uid"], old_data, payload)
+    
+    return {"message": f"Emergency category '{data.title}' saved", "id": doc_id, "is_locked": data.is_locked}
+
+
+@router.delete("/{university_slug}/{category}")
+async def delete_emergency_category(
+    university_slug: str, 
+    category: str, 
+    admin_data=Depends(require_admin)
+):
+    """Soft delete a specific emergency category."""
+    verify_university_access(admin_data, university_slug)
+    db = get_db()
+    is_super = admin_data.get("role") == "super_admin"
+    
+    doc_id = f"{university_slug}_{category}"
+    doc_ref = db.collection("emergency_contacts").document(doc_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        raise HTTPException(404, "Category not found")
+        
+    old_data = doc.to_dict()
+    if old_data.get("is_locked") and not is_super:
+        raise HTTPException(403, "Cannot delete a locked category.")
+
+    # SaaS Practice: Soft Delete
+    doc_ref.update({
+        "is_active": False,
+        "deleted_at": datetime.utcnow().isoformat(),
+        "deleted_by": admin_data["uid"]
+    })
+    
+    log_emergency_audit(university_slug, "DELETE", doc_id, admin_data["uid"], old_data, {"is_active": False})
+    
+    return {"message": f"Deleted emergency category '{category}'"}

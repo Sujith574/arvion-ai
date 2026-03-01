@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { getUniversity, getCMSEntries, type University } from "@/lib/api";
 
@@ -30,6 +30,7 @@ const QUICK_ACTIONS = [
 
 export default function UniversityDashboard() {
     const params = useParams();
+    const router = useRouter();
     const slug = params.slug as string;
 
     const [university, setUniversity] = useState<University | null>(null);
@@ -64,6 +65,21 @@ export default function UniversityDashboard() {
         { id: "courses", label: "Courses" },
         { id: "contacts", label: "Contacts" },
     ] as const;
+
+    const handleAction = (entry: any) => {
+        const { redirect_type, redirect_value } = entry.metadata || {};
+        if (!redirect_type || redirect_type === "none") return;
+
+        if (redirect_type === "chatbot") {
+            router.push(`/university/${slug}/chat?query=${encodeURIComponent(redirect_value || entry.title)}`);
+        } else if (redirect_type === "url" || redirect_type === "file") {
+            window.open(redirect_value, "_blank");
+        } else if (redirect_type === "whatsapp") {
+            window.open(`https://wa.me/${redirect_value.replace(/[^0-9]/g, '')}`, "_blank");
+        } else if (redirect_type === "call") {
+            window.location.href = `tel:${redirect_value}`;
+        }
+    };
 
     if (loading) {
         return (
@@ -103,32 +119,45 @@ export default function UniversityDashboard() {
 
                 {/* ── Header ─────────────────────────────────────── */}
                 <div style={{
-                    background: "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 60%, #1e1b4b 100%)",
-                    padding: "3rem 1.5rem 2rem",
+                    background: university.hero_image_url ? `linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url(${university.hero_image_url})` : "linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 60%, #1e1b4b 100%)",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    padding: "4rem 1.5rem 3rem",
                     color: "white",
                 }}>
                     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-                        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", color: "rgb(255 255 255 / 0.7)", textDecoration: "none", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+                        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", color: "white", textDecoration: "none", fontSize: "0.875rem", marginBottom: "2rem", background: "rgba(255,255,255,0.1)", padding: "0.4rem 0.75rem", borderRadius: "8px", backdropFilter: "blur(4px)" }}>
                             {icons.back} Back to Home
                         </Link>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
-                            <div style={{
-                                width: "64px", height: "64px", borderRadius: "16px",
-                                background: "rgb(255 255 255 / 0.15)", backdropFilter: "blur(8px)",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: "1.75rem", fontWeight: 900, border: "1px solid rgb(255 255 255 / 0.2)",
-                            }}>
-                                {university.name.charAt(0)}
-                            </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+                            {university.logo_url ? (
+                                <img src={university.logo_url} style={{ width: "80px", height: "80px", borderRadius: "20px", background: "white", padding: "10px", objectFit: "contain", border: "1px solid rgba(255,255,255,0.2)" }} alt="Logo" />
+                            ) : (
+                                <div style={{
+                                    width: "80px", height: "80px", borderRadius: "20px",
+                                    background: "rgba(255, 255, 255, 0.15)", backdropFilter: "blur(8px)",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    fontSize: "2.25rem", fontWeight: 900, border: "1px solid rgba(255, 255, 255, 0.2)",
+                                }}>
+                                    {university.name.charAt(0)}
+                                </div>
+                            )}
                             <div>
-                                <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 800, margin: 0, color: "white" }}>
+                                <h1 style={{ fontSize: "clamp(2rem, 5vw, 2.5rem)", fontWeight: 800, margin: 0, color: "white", textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
                                     {university.name}
                                 </h1>
-                                {university.location && (
-                                    <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "rgb(255 255 255 / 0.75)", fontSize: "0.9375rem", marginTop: "0.375rem" }}>
-                                        {icons.mappin} {university.location}
-                                    </div>
-                                )}
+                                <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                                    {university.location && (
+                                        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "rgba(255, 255, 255, 0.9)", fontSize: "0.9375rem" }}>
+                                            {icons.mappin} {university.location}
+                                        </div>
+                                    )}
+                                    {university.website_url && (
+                                        <a href={university.website_url} target="_blank" rel="noreferrer" style={{ color: "white", fontSize: "0.875rem", textDecoration: "underline", opacity: 0.9 }}>
+                                            Visit Website
+                                        </a>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -141,7 +170,7 @@ export default function UniversityDashboard() {
                             {QUICK_ACTIONS.map((action) => (
                                 <Link
                                     key={action.id}
-                                    href={`/university/${slug}/${action.href}`}
+                                    href={action.id === "chat" ? `/university/${slug}/chat` : `/university/${slug}/${action.href}`}
                                     style={{ textDecoration: "none" }}
                                 >
                                     <div
@@ -184,18 +213,18 @@ export default function UniversityDashboard() {
                 {/* ── Tabs ───────────────────────────────────────── */}
                 <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem 1.5rem" }}>
                     {/* Tab Bar */}
-                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "2rem", background: "var(--bg-subtle)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "fit-content" }}>
+                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "2rem", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "0.25rem", border: "1px solid var(--border)", width: "fit-content" }}>
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 style={{
-                                    padding: "0.5rem 1.125rem",
+                                    padding: "0.5rem 1.25rem",
                                     borderRadius: "10px",
                                     border: "none",
                                     cursor: "pointer",
                                     fontSize: "0.9rem",
-                                    fontWeight: 600,
+                                    fontWeight: 700,
                                     transition: "all 0.2s ease",
                                     background: activeTab === tab.id ? "var(--surface)" : "transparent",
                                     color: activeTab === tab.id ? "var(--brand-600)" : "var(--text-secondary)",
@@ -209,56 +238,68 @@ export default function UniversityDashboard() {
 
                     {/* Overview Tab */}
                     {activeTab === "overview" && (
-                        <div className="tab-grid-responsive" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.25rem" }}>
-                            <div className="card" style={{ padding: "1.75rem", gridColumn: "1 / -1" }}>
-                                <h2 style={{ fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.875rem" }}>About {university.name}</h2>
-                                <p style={{ color: "var(--text-secondary)", lineHeight: 1.75 }}>{university.description}</p>
-                                <div style={{ display: "flex", gap: "2rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
+                        <div className="tab-grid-responsive" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+                            <div className="card" style={{ padding: "2rem", gridColumn: "1 / -1" }}>
+                                <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}>About {university.name}</h2>
+                                <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: "1rem" }}>{university.description}</p>
+
+                                <div style={{ display: "flex", gap: "2.5rem", marginTop: "2rem", flexWrap: "wrap" }}>
                                     {university.established && (
-                                        <div><div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-600)" }}>{university.established}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.125rem" }}>Established</div></div>
+                                        <div><div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--brand-600)" }}>{university.established}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 700, marginTop: "0.125rem", textTransform: "uppercase" }}>Established</div></div>
                                     )}
                                     {university.students_count && (
-                                        <div><div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-600)" }}>{university.students_count}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.125rem" }}>Students</div></div>
+                                        <div><div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--brand-600)" }}>{university.students_count}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 700, marginTop: "0.125rem", textTransform: "uppercase" }}>Students</div></div>
                                     )}
-                                    <div><div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-600)" }}>200+</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.125rem" }}>Programs</div></div>
-                                    <div><div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--brand-600)" }}>NAAC A+</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.125rem" }}>Accreditation</div></div>
+                                    {university.programs_count && (
+                                        <div><div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--brand-600)" }}>{university.programs_count}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 700, marginTop: "0.125rem", textTransform: "uppercase" }}>Programs</div></div>
+                                    )}
+
+                                    {/* Dynamic Stats Cards from Admin */}
+                                    {university.stats?.map((stat, i) => (
+                                        <div key={i}><div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--brand-600)" }}>{stat.value}</div><div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", fontWeight: 700, marginTop: "0.125rem", textTransform: "uppercase" }}>{stat.label}</div></div>
+                                    ))}
                                 </div>
                             </div>
-                            <div className="card" style={{ padding: "1.75rem" }}>
-                                <h3 style={{ fontWeight: 700, marginBottom: "1rem" }}>Quick Chat Topics</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                    {["What are the hostel fees?", "How do I apply for admission?", "What scholarships are available?", "When is the last date to pay fees?"].map((q) => (
-                                        <Link key={q} href={`/university/${slug}/chat`} style={{ textDecoration: "none" }}>
+
+                            <div className="card" style={{ padding: "2rem" }}>
+                                <h3 style={{ fontWeight: 800, marginBottom: "1.25rem", fontSize: "1.125rem" }}>⚡ Quick Chat Topics</h3>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+                                    {["What are the admission requirements?", "Tell me about hostel life", "Available scholarships?", "Fees for International students?"].map((q) => (
+                                        <Link key={q} href={`/university/${slug}/chat?query=${encodeURIComponent(q)}`} style={{ textDecoration: "none" }}>
                                             <div style={{
-                                                padding: "0.625rem 0.875rem", borderRadius: "10px",
+                                                padding: "0.75rem 1rem", borderRadius: "12px",
                                                 border: "1px solid var(--border)", background: "var(--bg-subtle)",
                                                 fontSize: "0.875rem", color: "var(--text-secondary)",
                                                 cursor: "pointer", transition: "all 0.15s ease",
                                                 display: "flex", alignItems: "center", justifyContent: "space-between",
-                                            }}>
+                                                fontWeight: 500
+                                            }}
+                                                onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--brand-300)")}
+                                                onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
+                                            >
                                                 {q} {icons.arrow}
                                             </div>
                                         </Link>
                                     ))}
                                 </div>
                             </div>
-                            <div className="card" style={{ padding: "1.75rem" }}>
-                                <h3 style={{ fontWeight: 700, marginBottom: "1rem", color: "#ef4444" }}>Emergency Quick Access</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+
+                            <div className="card" style={{ padding: "2rem" }}>
+                                <h3 style={{ fontWeight: 800, marginBottom: "1.25rem", color: "#ef4444", fontSize: "1.125rem" }}>🚨 Emergency & Support</h3>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                                     {[
-                                        { label: "🏥 Medical Emergency", href: `/university/${slug}/emergency#medical` },
-                                        { label: "🛡️ Security Emergency", href: `/university/${slug}/emergency#security` },
-                                        { label: "🏠 Hostel Issue", href: `/university/${slug}/emergency#hostel` },
-                                        { label: "🪪 Lost ID Card", href: `/university/${slug}/emergency#lost_id` },
+                                        { label: "🚑 Medical Assistance", href: `/university/${slug}/emergency#medical` },
+                                        { label: "👮 Campus Security", href: `/university/${slug}/emergency#security` },
+                                        { label: "📞 Support Helpline", href: `tel:${university.social_links?.phone || ""}` },
                                     ].map((item) => (
                                         <Link key={item.label} href={item.href} style={{ textDecoration: "none" }}>
                                             <div style={{
-                                                padding: "0.625rem 0.875rem", borderRadius: "10px",
-                                                border: "1px solid #fecaca", background: "#fff1f2",
-                                                fontSize: "0.875rem", color: "#be123c", fontWeight: 600,
-                                                cursor: "pointer",
+                                                padding: "0.75rem 1rem", borderRadius: "12px",
+                                                border: "1px solid #fee2e2", background: "#fef2f2",
+                                                fontSize: "0.875rem", color: "#ef4444", fontWeight: 700,
+                                                cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center"
                                             }}>
-                                                {item.label}
+                                                {item.label} {icons.arrow}
                                             </div>
                                         </Link>
                                     ))}
@@ -267,31 +308,38 @@ export default function UniversityDashboard() {
                         </div>
                     )}
 
-                    {/* Courses Tab - Dynamic from CMS */}
+                    {/* Courses Tab - Fully Dynamic */}
                     {activeTab === "courses" && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                             {cmsData.courses.length === 0 ? (
-                                <div className="card" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
-                                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📚</div>
-                                    <p>No course information published yet. Check back soon or ask the AI assistant.</p>
-                                    <Link href={`/university/${slug}/chat`} className="btn-primary" style={{ display: "inline-block", marginTop: "1rem", padding: "0.625rem 1.5rem", borderRadius: "10px", textDecoration: "none" }}>Ask AI about courses</Link>
+                                <div className="card" style={{ padding: "4rem 2rem", textAlign: "center", color: "var(--text-muted)" }}>
+                                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📖</div>
+                                    <p style={{ fontSize: "1.125rem" }}>No courses published yet.</p>
                                 </div>
                             ) : (
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))", gap: "1.25rem" }}>
-                                    {cmsData.courses.map((course, i) => (
-                                        <div key={course.id} className="card" style={{ padding: "1.5rem" }}>
-                                            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, var(--brand-600), var(--accent-500))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "0.875rem", marginBottom: "0.875rem" }}>
-                                                {i + 1}
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))", gap: "1.5rem" }}>
+                                    {cmsData.courses.map((course) => (
+                                        <div
+                                            key={course.id}
+                                            className="card"
+                                            style={{ padding: "2rem", cursor: course.metadata?.redirect_type !== "none" ? "pointer" : "default", borderLeft: "4px solid var(--brand-500)" }}
+                                            onClick={() => handleAction(course)}
+                                        >
+                                            <h3 style={{ fontSize: "1.125rem", fontWeight: 800, marginBottom: "0.75rem", color: "var(--text-primary)" }}>{course.title}</h3>
+                                            <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "1rem" }}>{course.content}</p>
+
+                                            {/* Attributes */}
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.25rem" }}>
+                                                {Object.entries(course.metadata || {}).filter(([k]) => !["redirect_type", "redirect_value"].includes(k)).map(([k, v]) => (
+                                                    <span key={k} style={{ fontSize: "0.75rem", fontWeight: 700, padding: "0.3rem 0.6rem", borderRadius: "6px", background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                                                        {k}: {String(v)}
+                                                    </span>
+                                                ))}
                                             </div>
-                                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{course.title}</h3>
-                                            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{course.content}</p>
-                                            {course.metadata && Object.keys(course.metadata).length > 0 && (
-                                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.75rem" }}>
-                                                    {Object.entries(course.metadata).map(([k, v]) => (
-                                                        <span key={k} style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem", borderRadius: "6px", background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
-                                                            {k}: {String(v)}
-                                                        </span>
-                                                    ))}
+
+                                            {course.metadata?.redirect_type && course.metadata.redirect_type !== "none" && (
+                                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8125rem", fontWeight: 800, color: "var(--brand-600)" }}>
+                                                    {course.metadata.redirect_type === "chatbot" ? "Ask AI about this" : "View Details"} {icons.arrow}
                                                 </div>
                                             )}
                                         </div>
@@ -301,34 +349,46 @@ export default function UniversityDashboard() {
                         </div>
                     )}
 
-                    {/* Contacts Tab - Dynamic from CMS */}
+                    {/* Contacts Tab - Dynamic */}
                     {activeTab === "contacts" && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                            {cmsData.emergency.length === 0 ? (
-                                <div className="card" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
-                                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>📞</div>
-                                    <p>No contact information published yet.</p>
-                                    <Link href={`/university/${slug}/emergency`} style={{ display: "inline-block", marginTop: "1rem", color: "var(--brand-600)", fontWeight: 700, textDecoration: "none" }}>View Emergency Contacts</Link>
-                                </div>
-                            ) : (
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "1.25rem" }}>
-                                    {cmsData.emergency.map((contact) => (
-                                        <div key={contact.id} className="card" style={{ padding: "1.5rem" }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-600)", marginBottom: "0.625rem" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: "1.5rem" }}>
+                                {cmsData.emergency.map((contact) => (
+                                    <div
+                                        key={contact.id}
+                                        className="card"
+                                        style={{ padding: "2rem", transition: "transform 0.2s" }}
+                                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.02)")}
+                                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                                    >
+                                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--brand-600)", marginBottom: "1rem" }}>
+                                            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--brand-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                                 {icons.phone}
-                                                <span style={{ fontWeight: 700, fontSize: "0.875rem" }}>Contact</span>
                                             </div>
-                                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.375rem" }}>{contact.title}</h3>
-                                            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{contact.content}</p>
-                                            {contact.metadata?.phone && (
-                                                <a href={`tel:${contact.metadata.phone}`} style={{ fontSize: "1.125rem", fontWeight: 800, color: "var(--brand-600)", textDecoration: "none", display: "block", marginTop: "0.5rem" }}>
-                                                    {contact.metadata.phone}
-                                                </a>
-                                            )}
+                                            <span style={{ fontWeight: 800, fontSize: "0.9375rem", textTransform: "uppercase", letterSpacing: "0.02em" }}>Office / Support</span>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        <h3 style={{ fontSize: "1.125rem", fontWeight: 800, marginBottom: "0.5rem" }}>{contact.title}</h3>
+                                        <p style={{ fontSize: "0.9375rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1.5rem" }}>{contact.content}</p>
+
+                                        <button
+                                            onClick={() => handleAction(contact)}
+                                            style={{ width: "100%", padding: "0.875rem", borderRadius: "12px", border: "none", background: "var(--brand-600)", color: "white", fontWeight: 700, cursor: "pointer", transition: "filter 0.2s" }}
+                                            onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.1)")}
+                                            onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+                                        >
+                                            Get in Touch
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* If no CMS contacts, show link to emergency page */}
+                                {cmsData.emergency.length === 0 && (
+                                    <div className="card" style={{ padding: "3rem", textAlign: "center", gridColumn: "1 / -1" }}>
+                                        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>No standard contacts listed. Please visit the emergency directory.</p>
+                                        <Link href={`/university/${slug}/emergency`} className="btn-primary" style={{ padding: "0.75rem 2rem", borderRadius: "10px", textDecoration: "none" }}>Emergency Directory</Link>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

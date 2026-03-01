@@ -35,18 +35,23 @@ def init_firebase():
                 logger.info("[Firebase] Initializing with service account JSON from environment")
                 sa_info = json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
                 cred = credentials.Certificate(sa_info)
-                firebase_admin.initialize_app(cred)
+                firebase_admin.initialize_app(cred, {
+                    "storageBucket": settings.CLOUD_STORAGE_BUCKET or f"{settings.FIREBASE_PROJECT_ID}.appspot.com"
+                })
             # 2. Attempt using Service Account JSON file (Local Dev)
             elif os.path.exists(settings.FIREBASE_SERVICE_ACCOUNT_PATH):
                 logger.info(f"[Firebase] Initializing with service account: {settings.FIREBASE_SERVICE_ACCOUNT_PATH}")
                 cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_PATH)
-                firebase_admin.initialize_app(cred)
+                firebase_admin.initialize_app(cred, {
+                    "storageBucket": settings.CLOUD_STORAGE_BUCKET or f"{settings.FIREBASE_PROJECT_ID}.appspot.com"
+                })
             else:
                 # 3. Fallback to Application Default Credentials
                 logger.info("[Firebase] Fallback to Application Default Credentials (ADC)")
                 cred = credentials.ApplicationDefault()
                 firebase_admin.initialize_app(cred, {
-                    "projectId": settings.FIREBASE_PROJECT_ID
+                    "projectId": settings.FIREBASE_PROJECT_ID,
+                    "storageBucket": settings.CLOUD_STORAGE_BUCKET or f"{settings.FIREBASE_PROJECT_ID}.appspot.com"
                 })
         except Exception as e:
             logger.error(f"[Firebase] Initialization failed: {e}")
