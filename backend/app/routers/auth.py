@@ -218,17 +218,44 @@ async def reset_password(body: ResetPasswordRequest):
     })
 
     return {"message": "Password reset successfully. You can now login with your new password."}
-    
+
 
 @router.delete("/me")
 async def delete_me(user: dict = Depends(get_user)):
-    """Permanently delete the logged-in user's account."""
+    """
+    Permanently delete the logged-in user's account and ALL their related data.
+    Cascade deletes: query_logs, query_feedback, prolixis_memories, OTP tokens.
+    """
     db = get_db()
-    
-    # Delete the user document
-    db.collection("users").document(user["id"]).delete()
-    
-    # Optional: Log the deletion
-    print(f"[Auth] User deleted account: {user['email']} (ID: {user['id']})")
-    
+    uid = user.get("uid") or user.get("id")
+
+    def _bulk_delete(collection: str, field: str, value: str):
+        """Delete all docs in a collection where field == value, in safe batches of 400."""
+        docs = list(db.collection(collection).where(field, "==", value).select([]).stream())
+        for i in range(0, len(docs), 400):
+            batch = db.batch()
+            for doc in docs[i:i + 400]:
+                batch.delete(doc.reference)
+            batch.commit()
+
+    # 1. Delete the main user document
+    db.collection("users").document(uid).delete()
+
+    # 2. Cascade delete all data owned by this user
+    _bulk_delete("query_logs",        "user_id", uid)
+    _bulk_delete("query_feedback",    "user_id", uid)
+    _bulk_delete("prolixis_memories", "user_id", uid)
+
+    # 3. Clean up leftover OTP tokens by email (best-effort)
+    email = user.get("email", "")
+    if email:
+        for purpose in ("signup", "reset"):
+            key = f"{email}::{purpose}"
+            try:
+                db.collection("otp_codes").document(key).delete()
+                db.collection("otp_verified").document(key).delete()
+            except Exception:
+                pass  # Non-fatal
+
+    print(f"[Auth] Account fully deleted — email={email} uid={uid}")
     return {"message": "Account deleted successfully. We're sorry to see you go."}

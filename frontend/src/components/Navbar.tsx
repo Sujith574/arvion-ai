@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import PWAInstallButton from "@/components/PWAInstallButton";
+import { deleteAccount } from "@/lib/api";
 
 // ΓöÇΓöÇ Icons (inline SVG to avoid extra deps) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const BrainIcon = () => (
@@ -54,11 +55,24 @@ const LogoutIcon = () => (
     </svg>
 );
 
+const TrashIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14H6L5 6" />
+        <path d="M10 11v6M14 11v6" />
+        <path d="M9 6V4h6v2" />
+    </svg>
+);
+
 export default function Navbar() {
-    const { theme, toggleTheme, isAuthenticated, displayName, role, logout } = useStore();
+    const { theme, toggleTheme, isAuthenticated, displayName, role, token, logout } = useStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
     const pathname = usePathname();
     const router = useRouter();
 
@@ -76,10 +90,34 @@ export default function Navbar() {
 
     const handleLogout = () => {
         logout();
-        // Replace so back button cannot return to protected routes
         router.replace("/auth/login");
         setShowLogoutModal(false);
         setMenuOpen(false);
+    };
+
+    const openDeleteModal = () => {
+        setDeleteConfirmText("");
+        setDeleteError("");
+        setShowDeleteModal(true);
+        setMenuOpen(false);
+        setShowLogoutModal(false);
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== "DELETE") return;
+        if (!token) return;
+        setIsDeleting(true);
+        setDeleteError("");
+        try {
+            await deleteAccount(token);
+            logout();
+            setShowDeleteModal(false);
+            router.replace("/auth/signup?deleted=1");
+        } catch (err: any) {
+            setDeleteError(err.message || "Failed to delete account. Please try again.");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const navLinks = [
@@ -220,13 +258,32 @@ export default function Navbar() {
                                     <span style={{ fontSize: "0.875rem", color: "var(--text-secondary)", fontWeight: 500 }}>
                                         {displayName?.split(" ")[0]}
                                     </span>
-                                    <button
-                                        onClick={() => setShowLogoutModal(true)}
-                                        className="btn-secondary"
-                                        style={{ padding: "0.4rem 1rem", fontSize: "0.875rem" }}
-                                    >
-                                        Logout
-                                    </button>
+                                    <div style={{ position: "relative", display: "inline-block" }} className="user-menu-wrap">
+                                        <button
+                                            onClick={() => setShowLogoutModal(true)}
+                                            className="btn-secondary"
+                                            style={{ padding: "0.4rem 1rem", fontSize: "0.875rem" }}
+                                        >
+                                            Logout
+                                        </button>
+                                        <button
+                                            onClick={openDeleteModal}
+                                            title="Delete Account"
+                                            style={{
+                                                padding: "0.4rem 0.55rem",
+                                                borderRadius: "8px",
+                                                border: "1.5px solid #fecaca",
+                                                background: "#fff1f2",
+                                                color: "#be123c",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            <TrashIcon />
+                                        </button>
+                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -321,9 +378,9 @@ export default function Navbar() {
                                         width: "100%",
                                         padding: "0.75rem",
                                         borderRadius: "10px",
-                                        border: "1.5px solid #fecaca",
-                                        background: "#fff1f2",
-                                        color: "#be123c",
+                                        border: "1.5px solid var(--border)",
+                                        background: "transparent",
+                                        color: "var(--text-secondary)",
                                         fontWeight: 700,
                                         fontSize: "0.9375rem",
                                         cursor: "pointer",
@@ -333,13 +390,169 @@ export default function Navbar() {
                                     <LogoutIcon />
                                     Logout
                                 </button>
+                                <button
+                                    onClick={openDeleteModal}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                        width: "100%",
+                                        padding: "0.75rem",
+                                        borderRadius: "10px",
+                                        border: "1.5px solid #fecaca",
+                                        background: "#fff1f2",
+                                        color: "#be123c",
+                                        fontWeight: 700,
+                                        fontSize: "0.9375rem",
+                                        cursor: "pointer",
+                                        marginTop: "0.25rem",
+                                    }}
+                                >
+                                    <TrashIcon />
+                                    Delete Account
+                                </button>
                             </>
                         )}
                     </div>
                 )}
             </header>
 
-            {/* ΓöÇΓöÇ Logout Confirmation Modal ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+            {/* ── Delete Account Modal ─────────────────────────────────────── */}
+            {showDeleteModal && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        background: "rgba(0,0,0,0.65)",
+                        zIndex: 201,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "1.5rem",
+                        backdropFilter: "blur(6px)",
+                    }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}
+                >
+                    <div
+                        style={{
+                            background: "var(--surface)",
+                            borderRadius: "20px",
+                            padding: "2rem",
+                            maxWidth: "380px",
+                            width: "100%",
+                            textAlign: "center",
+                            border: "1.5px solid #fecaca",
+                            boxShadow: "0 30px 60px rgba(190,18,60,0.15), 0 0 0 1px rgba(254,202,202,0.3)",
+                            animation: "modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+                        }}
+                    >
+                        {/* Danger icon */}
+                        <div style={{
+                            width: "60px",
+                            height: "60px",
+                            borderRadius: "18px",
+                            background: "linear-gradient(135deg,#fef2f2,#fff1f2)",
+                            border: "1.5px solid #fecaca",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            margin: "0 auto 1.25rem",
+                            fontSize: "1.75rem",
+                        }}>⚠️</div>
+
+                        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "0.4rem", color: "var(--text-primary)" }}>
+                            Delete Your Account?
+                        </h3>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+                            This is <strong>permanent and irreversible</strong>. Your account, chat history, and all personal data will be erased immediately. You can always create a new account afterwards.
+                        </p>
+
+                        {/* Confirmation input */}
+                        <div style={{ marginBottom: "1.25rem", textAlign: "left" }}>
+                            <label style={{
+                                display: "block",
+                                fontSize: "0.8125rem",
+                                fontWeight: 600,
+                                color: "#be123c",
+                                marginBottom: "0.4rem",
+                            }}>
+                                Type <strong>DELETE</strong> to confirm
+                            </label>
+                            <input
+                                type="text"
+                                value={deleteConfirmText}
+                                onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(""); }}
+                                placeholder="DELETE"
+                                autoComplete="off"
+                                style={{
+                                    width: "100%",
+                                    boxSizing: "border-box",
+                                    padding: "0.75rem",
+                                    borderRadius: "10px",
+                                    border: `1.5px solid ${deleteConfirmText === "DELETE" ? "#ef4444" : "#fecaca"}`,
+                                    background: "#fff1f2",
+                                    color: "#be123c",
+                                    fontWeight: 700,
+                                    fontSize: "1rem",
+                                    letterSpacing: "0.05em",
+                                    outline: "none",
+                                    transition: "border-color 0.2s",
+                                }}
+                            />
+                            {deleteError && (
+                                <p style={{ color: "#ef4444", fontSize: "0.8125rem", marginTop: "0.4rem", fontWeight: 600 }}>
+                                    {deleteError}
+                                </p>
+                            )}
+                        </div>
+
+                        <div style={{ display: "flex", gap: "0.75rem" }}>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={isDeleting}
+                                style={{
+                                    flex: 1,
+                                    padding: "0.75rem",
+                                    borderRadius: "12px",
+                                    border: "1.5px solid var(--border)",
+                                    background: "transparent",
+                                    color: "var(--text-secondary)",
+                                    fontWeight: 600,
+                                    fontSize: "0.9375rem",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                                style={{
+                                    flex: 1,
+                                    padding: "0.75rem",
+                                    borderRadius: "12px",
+                                    border: "none",
+                                    background: deleteConfirmText === "DELETE" && !isDeleting
+                                        ? "linear-gradient(135deg,#ef4444,#be123c)"
+                                        : "#fca5a5",
+                                    color: "white",
+                                    fontWeight: 700,
+                                    fontSize: "0.9375rem",
+                                    cursor: deleteConfirmText === "DELETE" && !isDeleting ? "pointer" : "not-allowed",
+                                    transition: "background 0.2s, box-shadow 0.2s",
+                                    boxShadow: deleteConfirmText === "DELETE" && !isDeleting
+                                        ? "0 4px 14px rgba(239,68,68,0.4)"
+                                        : "none",
+                                }}
+                            >
+                                {isDeleting ? "Deleting…" : "Delete Forever"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Logout Confirmation Modal ─────────────────────────────────── */}
             {showLogoutModal && (
                 <div
                     style={{
